@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ships Before Steam</title>
+<meta name="description" content="Real ships' logbooks from 1750 to 1850 drawn as voyage lines: 6,524 passages from 1,973 CLIWOC logbook records, the trade-wind highways of the age of sail, the Brouwer route, the volta do mar, voyage times and the winds the officers wrote down.">
+<meta property="og:title" content="Ships before steam: the trade-wind highways of the age of sail, from real logbooks">
+<meta property="og:description" content="6,524 passages and 259,522 daily positions from British, Dutch, Spanish and French logbooks, 1750 to 1850, with the winds they recorded.">
+<meta property="og:image" content="https://maps.tristanhotham.com/ships-before-steam/header.png">
+<meta property="og:url" content="https://maps.tristanhotham.com/ships-before-steam/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Chart room: chart paper, ink, sea glass; nation colours are set in the script. */
+:root{
+  --bg:#F7F3EA; --panel:#EEE8DA; --fg:#1C2430; --muted:#5F6670; --rule:#E2DACA; --card:#FFFCF5; --border:#D0C6B2;
+  --hot:#B5332A; --cool:#24557F; --gold:#B58A00; --sea:#E9EFEF; --land:#EFE9DC;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141922; --panel:#1E242E; --fg:#ECE7DE; --muted:#A3A9B2; --rule:#323A46; --card:#1A2029; --border:#46505E;
+  --hot:#E8796D; --cool:#8DB4DA; --gold:#E2BE4A; --sea:#18202A; --land:#232A33; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141922; --panel:#1E242E; --fg:#ECE7DE; --muted:#A3A9B2; --rule:#323A46; --card:#1A2029; --border:#46505E;
+  --hot:#E8796D; --cool:#8DB4DA; --gold:#E2BE4A; --sea:#18202A; --land:#232A33; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 18px/1.62 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+.wrap{max-width:700px;margin:0 auto;padding-block:28px 64px}
+.wrap .bleed{width:min(1180px,calc(100vw - 32px));margin-left:calc((100% - min(1180px,100vw - 32px))/2);margin-right:0}
+a{color:inherit;text-decoration-color:var(--hot);text-underline-offset:3px}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kicker b{background:var(--cool);color:#fff;padding:5px 8px;font-weight:500}
+header.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end;border-bottom:6px double var(--fg);padding-bottom:22px;margin-top:18px}
+h1{font:900 clamp(44px,11vw,96px)/.9 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 .a{color:var(--hot)} h1 .b{color:var(--cool)}
+.mark{width:clamp(78px,16vw,128px);height:auto;display:block;color:var(--fg)}
+.dek{grid-column:1/-1;font-size:21px;line-height:1.42;margin:8px 0 0;max-width:56ch}
+.byline{font:400 13px/1.4 var(--mono);color:var(--muted);margin-top:14px}
+h2{font:800 34px/1.04 var(--display);letter-spacing:-.01em;margin:54px 0 10px;text-wrap:balance}
+h2 .n{font:500 13px/1 var(--mono);color:var(--hot);display:block;letter-spacing:.1em;margin-bottom:10px}
+h3{font:600 20px/1.25 var(--display);margin:28px 0 6px}
+p{margin:0 0 16px}
+.lede::first-letter{font:900 72px/.8 var(--display);float:left;margin:6px 10px 0 0;color:var(--cool)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 8px}
+.stats div{background:var(--card);padding:14px 12px}
+.stats b{display:block;font:900 clamp(22px,4.4vw,32px)/1 var(--display);letter-spacing:-.01em}
+.stats b.h{color:var(--hot)} .stats b.c{color:var(--cool)} .stats b.g{color:var(--gold)}
+.stats span{font:400 12px/1.35 var(--mono);color:var(--muted);display:block;margin-top:6px}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.figure{margin:26px 0 30px}
+.fig-h{font:600 19px/1.25 var(--display);margin:0 0 4px}
+.fig-sub{font:400 13px/1.45 var(--mono);color:var(--muted);margin:0 0 12px}
+.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:10px}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:640px){.two{grid-template-columns:1fr}}
+svg text{font-family:var(--mono);fill:var(--fg)}
+.lab{font-size:12px}.lab.m{fill:var(--muted)}.lab.b{font-weight:500}.lab.s{font-size:11px}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font:400 12px/1.45 var(--mono);padding:8px 10px;border-radius:3px;max-width:290px;z-index:1000;transform:translate(-50%,calc(-100% - 12px));display:none}
+.tip b{font-weight:500}
+.controls{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.scrollrow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;max-width:100%}
+.scrollrow .btn{flex:0 0 auto;white-space:nowrap}
+.ctl-l{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px;flex:0 0 auto;align-self:center}
+.btn{font:500 12px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:8px 10px;cursor:pointer;min-height:36px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn[aria-pressed="false"].nat{opacity:.55;text-decoration:line-through}
+.btn .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.btn:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.slider{display:flex;gap:10px;align-items:center;flex:1 1 320px;min-width:0}
+.slider input[type=range]{flex:1 1 auto;min-width:0;accent-color:var(--cool)}
+.slider output{font:600 15px/1 var(--mono);min-width:94px}
+.searchbox{position:relative;flex:1 1 260px;min-width:0}
+input[type=search]{font:400 15px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 11px;min-height:40px;width:100%}
+.suggest{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;background:var(--card);border:1px solid var(--border);z-index:1001;font:400 13px/1.3 var(--mono);display:none;max-height:340px;overflow:auto}
+.suggest li{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--rule)}
+.suggest li span{color:var(--muted)}
+.suggest li[aria-selected="true"],.suggest li:hover{background:var(--panel)}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.side{background:var(--card);border:1px solid var(--border);padding:12px 12px 10px;font:400 13px/1.45 var(--mono);max-height:660px;overflow:auto}
+@media (max-width:900px){.side{max-height:none}}
+.side h4{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.side h4:first-child{margin-top:2px}
+.side .big{font:800 24px/1.1 var(--display);margin:2px 0 4px}
+.side .sub{color:var(--muted);font-size:12px;margin:0 0 8px}
+.side table{width:100%;border-collapse:collapse;margin:4px 0 6px}
+.side td{padding:4px 4px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.side td.num{text-align:right;white-space:nowrap}
+.side ol{margin:4px 0 8px;padding-left:20px}
+.go{cursor:pointer;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
+.back{font:400 12px var(--mono);background:none;border:0;color:var(--muted);padding:0;cursor:pointer;text-decoration:underline;margin-bottom:6px}
+.sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15)}
+.lmap{height:640px;border:1px solid var(--border);background:var(--sea);border-radius:2px}
+@media (max-width:600px){.lmap{height:min(64vh,480px)}}
+.leaflet-container{font:400 12px/1.4 var(--mono);background:var(--sea)}
+.lyrBtn{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;font:600 12px/1 var(--mono);padding:8px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.lyrBtn[aria-expanded="true"]{background:var(--fg);color:var(--bg)}
+.lyrPanel{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 12px 8px;margin-top:6px;width:260px;box-shadow:0 2px 10px rgba(0,0,0,.15);font:400 12px/1.3 var(--mono);max-height:min(70vh,540px);overflow:auto}
+.lyrPanel[hidden]{display:none}
+.lyrPanel .row{margin:0 0 9px}
+.lyrPanel label{display:flex;gap:6px;align-items:center;cursor:pointer;font-weight:600}
+.lyrPanel input[type=range]{width:100%;accent-color:var(--fg)}
+.lyrPanel select{font:400 12px var(--mono);background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:2px;padding:2px 4px;width:100%;min-height:0}
+.lyrPanel .sub{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:11px;margin-top:3px}
+.lyrPanel .sub span{flex:0 0 58px}
+.lyrPanel .hd{font:500 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 7px;border-top:1px solid var(--rule);padding-top:9px}
+.lyrPanel .reset{font:400 11px var(--mono);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.seaL{font:italic 400 13px/1.1 var(--body);color:var(--cool);white-space:nowrap;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 4px var(--bg),0 0 6px var(--bg);pointer-events:none;text-align:center;opacity:.85}
+.beltL{font:600 11.5px/1.15 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 2px var(--bg),0 0 3px var(--bg),0 0 4px var(--bg),0 0 6px var(--bg),0 0 8px var(--bg);pointer-events:none;text-align:center}
+.beltL small{display:block;font-weight:400;color:var(--muted)}
+.portL{font:500 10.5px/1 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);pointer-events:none}
+.portL i{display:inline-block;width:6px;height:6px;border-radius:50%;border:1.5px solid var(--fg);background:var(--bg);margin-right:4px;vertical-align:0}
+.arrow svg{overflow:visible;display:block}
+.mapnote{background:color-mix(in srgb,var(--card) 92%,transparent);border:1px solid var(--border);border-radius:3px;padding:6px 9px;font:400 12px/1.35 var(--mono);max-width:min(300px,62vw);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.mapnote:empty{display:none}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--card);color:var(--fg);border-bottom-color:var(--border)}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--card) 85%,transparent)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--fg)}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font:400 12px/1.3 var(--mono);color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:18px;height:3px;margin-right:6px;border-radius:2px}
+.legend i.ar{width:auto;height:auto;background:none!important}
+.pull{font:600 26px/1.25 var(--display);border-left:6px solid var(--cool);padding:4px 0 4px 18px;margin:30px 0}
+.note{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;font-size:16px;margin:22px 0}
+.note h3{margin-top:0}
+table.t{width:100%;border-collapse:collapse;font:400 13px/1.4 var(--mono);margin:10px 0 6px}
+table.t th{text-align:left;font-weight:500;color:var(--muted);border-bottom:2px solid var(--fg);padding:6px 6px 6px 0}
+table.t td{border-bottom:1px solid var(--rule);padding:6px 6px 6px 0;vertical-align:top}
+table.t td.num,table.t th.num{text-align:right;white-space:nowrap}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+details{margin:14px 0}
+summary{font:500 13px/1.4 var(--mono);cursor:pointer;color:var(--fg);padding:8px 0}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.cta a{font:500 13px/1 var(--mono);text-decoration:none;border:1px solid var(--fg);padding:11px 14px;border-radius:3px}
+.cta a.p{background:var(--cool);border-color:var(--cool);color:#fff}
+footer{border-top:6px double var(--fg);margin-top:56px;padding-top:16px;font:400 13px/1.55 var(--mono);color:var(--muted)}
+footer p{margin:0 0 10px}
+.theme{position:fixed;right:12px;bottom:12px;z-index:1002}
+@media print{.theme,.controls{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker"><b>Data study</b><span>History</span><span>World oceans, 1750 to 1850</span></div>
+<header class="hero">
+  <h1>Ships before <span class="a">steam</span></h1>
+  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><g id="heroMark"></g></svg>
+  <p class="dek">Before engines, a ship went where the wind let it. Officers wrote down their position, the wind and the weather every day, and thousands of their logbooks survive. Drawn as lines, 6,524 stretches of real voyages from British, Dutch, Spanish and French logbooks show the highways of the age of sail: out with the trade winds, round in a great loop home, and east along the roaring forties.</p>
+</header>
+<div class="byline">Dr Tristan Hotham · Independent researcher · 2026 · Data: CLIWOC v2.1 logbook database (Garcia-Herrera et al. 2005); NCEP/NCAR Reanalysis 1; World Bank and IMF ship density; Natural Earth</div>
+
+<div class="stats">
+  <div><b class="c">259,522</b><span>daily positions from 1,973 logbook records, 1662 to 1855</span></div>
+  <div><b class="h">18°</b><span>further west that homebound ships crossed 30° N than outbound ones: the volta do mar</span></div>
+  <div><b class="g">102 days</b><span>median sailing time from home waters to Batavia, 219 voyages</span></div>
+  <div><b>97%</b><span>of 5° squares where the logbook winds point within 45° of the modern average</span></div>
+</div>
+
+<p class="lede">From the 1750s onwards almost every officer on an ocean-going European ship kept a logbook. Each day at noon it recorded where the ship was, worked out from the course, speed and the occasional sight of the sun, and how the wind blew, because the wind decided how far the ship had drifted. Between 2001 and 2003 a European project called CLIWOC, the Climatological Database for the World's Oceans, went into the archives of Britain, the Netherlands, Spain and France and typed up 260,631 of those daily entries from 1,740 logbooks, for climate scientists. They also happen to be the best open record of where sailing ships actually went.</p>
+<p>The map below draws every one of them. Each line is a passage: an unbroken run of daily positions in one logbook, from the Channel to the Cape, Cádiz to Havana, Batavia to St Helena. Colour shows the ship's nation. The arrows are the logbook winds themselves, averaged on a 5° grid. Slide through the decades, pick a nation or a kind of operator, search for a ship, or click a line to see whose it was.</p>
+
+<h2><span class="n">01 · The map</span>Every logbook, every day at sea</h2>
+<div class="bleed" id="atlas">
+<div class="controls">
+  <div class="slider"><span class="ctl-l">Decade</span><input type="range" id="dec" min="0" max="12" step="1" value="0" aria-label="Decade"><output id="decOut">All years</output></div>
+  <button class="btn" id="play" aria-pressed="false">Play</button>
+</div>
+<div class="controls"><div class="scrollrow" id="natRow"><span class="ctl-l">Nation</span></div></div>
+<div class="controls"><div class="scrollrow" id="grpRow"><span class="ctl-l">Operator</span></div></div>
+<div class="controls">
+  <div class="searchbox"><input type="search" id="q" placeholder="Search a ship or a port" aria-label="Search a ship or a port" autocomplete="off"><ul class="suggest" id="sug" role="listbox"></ul></div>
+</div>
+<div class="controls"><div class="scrollrow" id="focusRow"><span class="ctl-l">Show me</span></div></div>
+<div class="mapgrid">
+  <div><div id="map" class="lmap" role="application" aria-label="Map of logbook voyages 1750 to 1850"></div>
+    <div class="legend" id="legend"></div></div>
+  <div class="side" id="side" aria-live="polite"></div>
+</div>
+<p class="src">Lines: CLIWOC v2.1 daily logbook positions (noon positions, mostly by dead reckoning), cut into passages where the log is silent for more than 10 days. Arrows: mean logbook wind direction in each 5° square with at least 25 observations; length shows how steady it was, colour how strong. Today's shipping: World Bank and IMF AIS density, 2015 to 2021, summed over 2° squares. Base map tiles © Esri.</p>
+</div>
+
+<h2><span class="n">02 · The trade-wind highways</span>Out by Africa, home by the Azores</h2>
+<p>The lines make the first rule of the age of sail plain: you could not sail straight to where you were going and back the same way. Ships bound south from Europe ran down the coast of Africa past Madeira and the Canaries, picked up the north-east trade winds, and crossed the equator well out in the Atlantic, at a median of 23° W, to avoid the calms of the Gulf of Guinea. Coming home they could not beat back against those same trades, so they swung out west in a great arc, the Portuguese <i>volta do mar</i> or "turn of the sea", until they reached the westerlies near the Azores and ran home before them.</p>
+<p>The logbooks measure it. Of the 1,139 crossings of 30° N by ships sailing between Europe and the South Atlantic, outbound ships crossed at a median of 18° W and homebound ships at 36° W, 18° further west. At 38° N, the latitude of the Azores, 66% of homebound ships passed between 35° W and 20° W; only 2% of outbound ships did.</p>
+<div class="figure"><p class="fig-h">Where ships crossed 30° N</p><p class="fig-sub">Ships on passages between Europe and the South Atlantic, by the longitude where their daily track crossed 30° N, in 5° bins. Hover a bar.</p><div class="chart" id="voltaChart"></div></div>
+<div class="cta"><a href="#atlas" data-focus="volta">The volta do mar on the map</a></div>
+
+<h2><span class="n">03 · The roaring forties</span>The Dutch road to Java</h2>
+<p>In 1611 the Dutch captain Hendrik Brouwer found that a ship leaving the Cape of Good Hope could run east in the strong westerlies near 40° S and then turn north for Java, instead of creeping up the coast of Africa against the monsoon. The Dutch East India Company soon made his route compulsory. The logbooks show it still in use two centuries later. Of 323 Dutch crossings of 75° E heading east in the southern Indian Ocean, the median was at 38° S and 100% were south of 30° S. On voyages to Batavia the median Dutch ship got as far south as 40° S before turning north.</p>
+<p>British ships used the forties too, but many were bound for India rather than Java and peeled off northward sooner: at 90° E the median British eastbound crossing was at 15° S, against 34° S for the Dutch. The logbook winds in the forties blow from a westerly point 70% of the time, with a mean force of 9.3 m/s, nearly twice that of the equatorial calms.</p>
+<div class="figure"><p class="fig-h">How far south ships crossed 75° E</p><p class="fig-sub">Eastbound crossings of 75° E in the southern hemisphere, by latitude, in 2.5° bins.</p><div class="chart" id="brouwerChart"></div></div>
+<div class="cta"><a href="#atlas" data-focus="brouwer">The Brouwer route on the map</a></div>
+
+<h2><span class="n">04 · How long it took</span>A hundred days to Batavia</h2>
+<p>Because each log is dated, the time between leaving one place and reaching another can be read straight off it. I counted a voyage from a ship's last position in home waters (the North Sea, the Channel and its approaches) to its first position at the destination, allowing calls on the way. 219 voyages reached Batavia, nearly all of them Dutch: the median took 102 days, and the quartiles were 94 and 119. The fastest was the ADMIRAAL JAN EVERTSEN in 1842, in 80 days.</p>
+<p>Earlier voyages took far longer. The 15 voyages that left before 1820 had a median of 176 days, against 101 days from 1820 on. Part of that is the long stop at the Cape that Company ships made, but even the run from the Cape to Batavia fell from a median of 71 days to 45. The early numbers rest on few voyages, so treat them as a sketch.</p>
+<div class="figure"><p class="fig-h">Voyage times on the great routes</p><p class="fig-sub">Days from the last position at the start to the first position at the destination. Dot: median; bar: middle half of voyages; whisker: fastest and slowest. Number of voyages in brackets.</p><div class="chart" id="durChart"></div></div>
+<p>The Spanish mail packets, the <i>correos marítimos</i>, ran from La Coruña to Puerto Rico in a median of 38 days, downwind all the way in the trades. Getting home from Havana took 81. British ships reached the Caribbean from home waters in 38 days and India in 133.</p>
+
+<h2><span class="n">05 · The winds they wrote down</span>A climate record hiding in the logbooks</h2>
+<p>Officers recorded the wind in words and compass points, in English, Dutch, Spanish and French, and the CLIWOC team translated them into degrees and forces. 241,792 daily entries (93%) give a direction. Averaged in 5° squares they draw the planet's wind belts as a meteorologist would: easterly trade winds either side of the equator, westerlies further out, and calms in between. In the Atlantic, 73% of winds between 10° and 25° N came from between north and east, the north-east trades, and 68% between 5° and 25° S came from between east and south. Between the equator and 5° N, 7.9% of entries were calm or variable, 2.9 times the rate in the trade-wind belts: the doldrums.</p>
+<div class="figure"><p class="fig-h">The Atlantic's wind belts, from logbooks and from today's climate</p><p class="fig-sub">Mean west-to-east part of the wind by 5° latitude band, 70° W to 20° E. Negative: from the east (trades). Positive: from the west (westerlies). Logbooks: average of daily wind directions. Modern: NCEP/NCAR reanalysis monthly means for the same places and months.</p><div class="chart" id="beltChart"></div></div>
+<p>To check them, I set every logbook wind against the modern long-term average (the NCEP/NCAR reanalysis, 1991 to 2020) for the same place and calendar month. In the 318 squares where today's average wind is steady, the logbook mean points within 45° of it in 97% and within 30° in 93%, with a median difference of 9°. A single day's wind is noisier: 65% of daily entries fall within 45° of the average. Across the 39 latitude bands of the Atlantic and Indian Oceans, the logbook and modern west-to-east components correlate at 0.93. The northern Indian Ocean shows the monsoon flip: from December to February 65% of winds there came from the north-east quadrant, from June to August 81% from the south-west.</p>
+<div class="cta"><a href="#atlas" data-focus="windsDJF">Winds in December to February</a><a href="#atlas" data-focus="windsJJA">Winds in June to August</a></div>
+
+<h2><span class="n">06 · The busiest routes</span>Who sailed where</h2>
+<p>Each nation's logbooks trace its own empire. Joining the places each ship sailed between (passing over island calls such as Madeira and St Helena), the busiest route in the record is between Europe and Batavia, with 252 legs, 236 of them Dutch, followed by Europe and the Cape (242). The Dutch also sailed to Suriname and the Gold Coast: many of those logbooks belong to the Middelburgsche Commercie Compagnie of Zeeland, whose ships carried enslaved Africans to the Caribbean, and their lines trace that triangle. Spanish logbooks run from La Coruña and Cádiz to Puerto Rico, Havana and the River Plate. British logbooks, most of them from the Royal Navy, reach the Cape, the Caribbean and Ceylon.</p>
+<div class="figure"><p class="fig-h">The most sailed routes for each nation</p><p class="fig-sub">Legs between named places (both directions together), counted from consecutive port visits in each logbook. Click a route to see it on the map.</p><div id="routeTable"></div></div>
+
+<h2><span class="n">07 · Who kept the records</span>A sample, not a census</h2>
+<p>This is a map of surviving, archived and digitised logbooks, not of all shipping. CLIWOC worked in British, Dutch, Spanish and French archives, so Portuguese, Danish, Swedish and American ships are almost absent (8 records between them), as is most merchant shipping, whose logs were rarely kept. Navies dominate: 1,030 of the 1,973 records (52%) are from naval ships. Each nation is lopsided in time too. 97% of the Spanish positions date from 1760 to 1799; 67% of the Dutch from 1820 or later, many of them logbooks held by KNMI, the Dutch weather service; and 73% of the British from before 1800. The thinnest decade is the 1810s, the years of the Napoleonic Wars, with 8,192 positions.</p>
+<div class="figure"><p class="fig-h">Daily positions by decade and nation</p><p class="fig-sub">All 259,522 positions, by the decade of the logbook date. A handful before 1750 and after 1849 are included in the end bars.</p><div class="chart" id="covChart"></div></div>
+<div class="tablewrap"><table class="t" id="covTable"></table></div>
+<p>Some famous voyages are in it. Cook's Endeavour is there from 1768, and his Resolution, whose log reaches 71° S on 30 January 1774, the farthest south anyone had then sailed. So are La Pérouse's Boussole, lost with all hands in 1788, and the Racehorse, which reached 80.8° N on 27 July 1773 on a Royal Navy attempt to sail towards the North Pole. And the end of the age is there too: 19 records come from steamships, the first of them the Dutch navy's Curaçao in 1827, on one of the first Atlantic crossings made largely under steam.</p>
+<p>The positions themselves carry errors. Most were worked out by dead reckoning, from course and speed, and longitude at sea was uncertain until chronometers spread at the end of the eighteenth century. I removed 63 lone positions that jump hundreds of kilometres away and straight back, but smaller errors remain. A day here is one entry, usually at noon: the lines join noon positions with straight segments, not the ship's real course.</p>
+
+<h2><span class="n">08 · Then and now</span>The roads the engines abandoned</h2>
+<p>Steam, the Suez Canal (opened in 1869) and the Panama Canal (1914) freed ships from the wind, and the map of the sea changed. Comparing the logbook record with today's ship traffic, measured from AIS positions by the World Bank and IMF and summed over 2° squares, the two agree only loosely (rank correlation 0.22). 5.9% of the logbook record crosses the southern Indian Ocean between 35° and 50° S, against about 0.0% of today's traffic. The Red Sea and the Gulf of Aden carry 1.3% of today's traffic but only 0.01% of the logbook record, and the Strait of Malacca 0.04%. 31% of the busiest tenth of today's squares saw no logbook ship at all. One caution: the logbook record is a sample, so 'no logbook ship' does not mean no ship sailed there.</p>
+<div class="figure"><p class="fig-h">Share of the logbook record and of today's traffic</p><p class="fig-sub">Logbooks: passages crossing each 2° square. Today: AIS ship density index, 2015 to 2021. Both as a share of their world total.</p><div class="chart" id="modChart"></div></div>
+<p class="pull">The logbooks still know the winds: in 97% of squares their average points the way today's does.</p>
+
+<h2><span class="n">09 · How I did this</span>Methods and caveats</h2>
+<p><b>Data.</b> CLIWOC version 2.1, as a GeoJSON of ship tracks prepared by Francisco Correoso (kikocorreoso/cliwoc_vis on GitHub) from the CLIWOC21 GeoPackage, which keeps each logbook entry's position, date, wind direction and force, and the ship, nationality, company, ship type and archive. The file holds 1,973 records (CLIWOC ship and voyage identifiers, from 1,740 logbooks) and 260,631 positions from 1662 to 1855; 100% fall in CLIWOC's period of 1750 to 1854.</p>
+<p><b>Passages.</b> I sorted each record's positions by date, kept one a day, dropped lone spikes, and cut the record wherever the log was silent for more than 10 days or the next position implied more than 450 km a day. That gives 6,524 passages with at least 3 positions. A passage can include days at anchor. Operators come from CLIWOC's company field (Royal Navy, East India Company, VOC, the Dutch navy and admiralties and so on); for Spanish ships, which have no company, I used the ship type: packet boats and mail frigates are counted as mail packets, ships of the line, frigates, corvettes and brigs as navy.</p>
+<p><b>Routes and voyage times.</b> I drew circles and boxes round 42 ports and anchorages and called a ship 'at' a place when its position fell inside. A leg runs from a ship's last position at one place to its first position at the next place, with no silence over 30 days; a voyage for timing may include calls on the way but no silence over 45 days. Crossings of a line of latitude or longitude are interpolated between daily positions. Times run from when the log last puts the ship in port or home waters, so they are a little shorter than door-to-door times.</p>
+<p><b>Winds.</b> CLIWOC's directions are where the wind blew from, with codes for calm and variable winds. In each 5° square I averaged unit vectors (so a strong gale and a light breeze count the same), and compared them with NCEP/NCAR Reanalysis 1 monthly means (1991 to 2020) interpolated to each entry's place and month. The reanalysis is a modern climate model's reconstruction, so differences mix logbook errors, sampling and real change since the eighteenth century.</p>
+<p><b>Today's shipping.</b> The World Bank and IMF Global Shipping Traffic Density raster, in the overview version that samples single pixels, summed over 2° squares, where it is a rough but fair index. It depends on where AIS receivers and satellites pick ships up, so treat it as a guide.</p>
+<details><summary>Sources and licences</summary>
+<ul>
+<li>CLIWOC: Garcia-Herrera, R., Können, G. P., Wheeler, D. A., Prieto, M. R., Jones, P. D. and Koek, F. B. (2005) CLIWOC: a climatological database for the world's oceans 1750 to 1854. Climatic Change 73, 1 to 12. Database version 2.1, released by the Universidad Complutense de Madrid and KNMI (Royal Netherlands Meteorological Institute), with the University of Sunderland, the University of East Anglia, the Instituto de Ciencias Humanas, Sociales y Ambientales (Argentina) and the National Maritime Museum. CLIWOC is openly published research data; I could not find a formal licence, so I credit it in full and reuse it as research data. Please check the original terms before reusing the logbook positions.</li>
+<li>GeoJSON of CLIWOC voyages: Francisco Correoso, cliwoc_vis (github.com/kikocorreoso/cliwoc_vis), derived from the CLIWOC21 GeoPackage at stvno.github.io/page/cliwoc.</li>
+<li>NCEP/NCAR Reanalysis 1 long-term monthly means, NOAA Physical Sciences Laboratory (Kalnay et al. 1996). Public domain.</li>
+<li>World Bank, Global Shipping Traffic Density (IMF and World Bank, from AIS data 2015 to 2021; Cerdeiro et al. 2020). CC BY 4.0. Used only as sums over 2° squares.</li>
+<li>Wikipedia, 'Age of Sail' and 'Trade winds' (CC BY-SA 4.0), for background.</li>
+<li>Natural Earth land and countries (public domain). Base map tiles © Esri.</li>
+<li>This study: text, figures and derived data CC BY 4.0; code MIT.</li>
+</ul></details>
+
+<div class="cta"><a class="p" href="https://doi.org/10.5281/zenodo.23857610">Read the paper</a><a href="https://github.com/Tristan-Hotham/ships-before-steam">Data and code</a><a href="https://blog.tristanhotham.com/2026/10/31/ships-before-steam/">Blog post</a><a href="https://blog.tristanhotham.com/">Blog home</a></div>
+
+<footer>
+<p>Dr Tristan Hotham, Independent researcher. ORCID <a href="https://orcid.org/0000-0003-4931-9349">0000-0003-4931-9349</a>.</p>
+<p>Cite as: Hotham, T. (2026) Ships before steam: the trade-wind highways of the age of sail in British, Dutch, Spanish and French logbooks, 1750 to 1850. Zenodo. <a href="https://doi.org/10.5281/zenodo.23857610">10.5281/zenodo.23857610</a></p>
+<p>Data: CLIWOC v2.1 (Garcia-Herrera et al. 2005), GeoJSON by Francisco Correoso. Licence of this study: text, figures and data CC BY 4.0, code MIT.</p>
+<p>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</p>
+</footer>
+</div>
+<div class="tip" id="tip"></div>
+<button class="btn theme" id="theme" aria-label="Toggle dark mode">◐</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const R = {"n_tracks":1973,"n_features":1973,"n_logbook_ids":1740,"n_passages":6524,"n_obs":259522,"n_obs_raw":260631,"clean":{"spikes":63,"dup_days":319,"short_dropped":558,"multi_joined":19},"year_min":1662,"year_max":1855,"share_obs_1750_1854":0.9962893319256171,"n_obs_before_1750":924,"n_obs_after_1850":12200,"km_total":46217731,"times_round_earth":1153.2808733624454,"median_passage_days":32.0,"median_daily_km":175.04306757483414,"nation":{"british":{"label":"British","tracks":732,"passages":2666,"obs":90723,"share_obs":0.34957729980502616,"first_year":1750,"last_year":1829,"peak_decade":1760},"dutch":{"label":"Dutch","tracks":676,"passages":2586,"obs":114324,"share_obs":0.4405175669114757,"first_year":1662,"last_year":1855,"peak_decade":1840},"spanish":{"label":"Spanish","tracks":472,"passages":973,"obs":45045,"share_obs":0.17356910011482649,"first_year":1745,"last_year":1849,"peak_decade":1770},"french":{"label":"French","tracks":85,"passages":279,"obs":8254,"share_obs":0.03180462542674609,"first_year":1746,"last_year":1837,"peak_decade":1780},"other":{"label":"Other (American, Swedish, Danish, Hamburg)","tracks":8,"passages":20,"obs":1176,"share_obs":0.00453140774192554,"first_year":1748,"last_year":1819,"peak_decade":1790}},"nation_order":["british","dutch","spanish","french","other"],"n_other_tracks":8,"share_obs_big3":0.9636639668313284,"coverage":[{"decade":1750,"passages":{"british":429,"dutch":130,"spanish":2,"french":60,"other":7},"obs":{"british":12287,"dutch":7238,"spanish":40,"french":1683,"other":338},"total_passages":628,"total_obs":21586},{"decade":1760,"passages":{"british":457,"dutch":136,"spanish":121,"french":39,"other":0},"obs":{"british":14104,"dutch":6254,"spanish":5053,"french":1088,"other":0},"total_passages":753,"total_obs":26499},{"decade":1770,"passages":{"british":435,"dutch":95,"spanish":465,"french":51,"other":0},"obs":{"british":13077,"dutch":4508,"spanish":23581,"french":1425,"other":0},"total_passages":1046,"total_obs":42591},{"decade":1780,"passages":{"british":300,"dutch":171,"spanish":180,"french":90,"other":0},"obs":{"british":11004,"dutch":7923,"spanish":8235,"french":3031,"other":0},"total_passages":741,"total_obs":30193},{"decade":1790,"passages":{"british":441,"dutch":116,"spanish":158,"french":17,"other":7},"obs":{"british":15749,"dutch":5628,"spanish":6802,"french":602,"other":264},"total_passages":739,"total_obs":29045},{"decade":1800,"passages":{"british":400,"dutch":45,"spanish":7,"french":0,"other":2},"obs":{"british":16113,"dutch":2044,"spanish":201,"french":0,"other":195},"total_passages":454,"total_obs":18553},{"decade":1810,"passages":{"british":87,"dutch":96,"spanish":5,"french":7,"other":1},"obs":{"british":4174,"dutch":3584,"spanish":259,"french":101,"other":74},"total_passages":196,"total_obs":8192},{"decade":1820,"passages":{"british":117,"dutch":261,"spanish":17,"french":0,"other":0},"obs":{"british":4215,"dutch":8698,"spanish":159,"french":0,"other":0},"total_passages":395,"total_obs":13072},{"decade":1830,"passages":{"british":0,"dutch":442,"spanish":5,"french":13,"other":0},"obs":{"british":0,"dutch":19141,"spanish":405,"french":190,"other":0},"total_passages":460,"total_obs":19736},{"decade":1840,"passages":{"british":0,"dutch":773,"spanish":9,"french":0,"other":0},"obs":{"british":0,"dutch":32844,"spanish":181,"french":0,"other":0},"total_passages":782,"total_obs":33025},{"decade":1850,"passages":{"british":0,"dutch":316,"spanish":0,"french":0,"other":0},"obs":{"british":0,"dutch":16106,"spanish":0,"french":0,"other":0},"total_passages":316,"total_obs":16106}],"n_passages_before_1750":14,"busiest_decade":{"decade":1770,"obs":42591},"thinnest_decade":{"decade":1810,"obs":8192},"spanish_1760_1799_share":0.9694971694971695,"dutch_1820_share":0.6716787376228963,"british_pre1800_share":0.7299251567959614,"british_after_1830_obs":0,"french_tracks":85,"groups":{"eic":206,"navy":1030,"correo":276,"chartered":76,"merchant":50,"unknown":335},"companies":[{"code":"RN","label":"Royal Navy","tracks":558},{"code":"MAR","label":"Dutch navy (Marine)","tracks":215},{"code":"EIC","label":"English East India Company","tracks":146},{"code":"ADM","label":"Dutch admiralties","tracks":77},{"code":"MCC","label":"Middelburgsche Commercie Compagnie","tracks":62},{"code":"VOC","label":"Dutch East India Company (VOC)","tracks":54},{"code":"MER","label":"Dutch merchant ship","tracks":28},{"code":"WHA","label":"Dutch whaler","tracks":14},{"code":"HUDSON BAY COMPANY","label":"Hudson's Bay Company","tracks":11},{"code":"ROYAL NAVY","label":"Royal Navy","tracks":9},{"code":"PARTICULIER","label":"Private owner","tracks":4},{"code":"VOC-Z","label":"Dutch East India Company (VOC), Zeeland chamber","tracks":3},{"code":"WIC","label":"Dutch West India Company","tracks":3},{"code":"SWEDISH EAST INDIA COMPANY","label":"Swedish East India Company","tracks":2},{"code":"THOMAS BROUW EN ZN.","label":"Thomas Brouw en Zn.","tracks":1},{"code":"A. VAN HOBOKEN & ZN. TE ROTTERDAM.","label":"A. van Hoboken en Zn., Rotterdam","tracks":1},{"code":"MERCHANT NAVY","label":"Merchant ship","tracks":1},{"code":"OIC","label":"Danish Asiatic Company","tracks":1},{"code":"H. V. RIJCKEVORSEL, ROTTERDAM","label":"H. van Rijckevorsel, Rotterdam","tracks":1}],"company_n":{"RN":558,"EIC":146,"VOC":54,"MAR":215,"ADM":77,"MCC":62,"WHA":14,"HUDSON BAY COMPANY":11,"RN_all":567,"VOC_all":57},"navy_share":0.5220476431829701,"archives":[{"name":"National Maritime Museum, Greenwich","tracks":567},{"name":"Nationaal Archief, The Hague","tracks":285},{"name":"KNMI (Royal Netherlands Meteorological Institute), De Bilt","tracks":281},{"name":"Archivo General de Indias, Seville","tracks":256},{"name":"Archivo del Museo Naval, Madrid","tracks":205},{"name":"British Library, London","tracks":125},{"name":"Archives nationales, Paris","tracks":81},{"name":"Zeeuws Archief, Middelburg","tracks":61},{"name":"Public Record Office (The National Archives), London","tracks":35}],"n_archives":22,"steam":{"tracks":19,"first_year":1827,"ships":["Amsterdam","Batavia","Bromo","Curacao","Etna","Gedeh","Hecla","Merapi","Phoenix","Suriname"],"curacao_year":1827},"where":{"atlantic":0.7365155940536833,"indian":0.2220004469755936,"pacific":0.02462604326415487,"south_lat":-71.17,"north_lat":80.8},"southmost":{"ship":"Resolution","date":"1774-01-30","lat":-71.17,"year":1774},"northmost":{"ship":"Racehorse","date":"1773-07-27","lat":80.8,"year":1773,"nat":"british","company":"Royal Navy","day":"27 July 1773"},"famous":{"endeavour":{"track":636,"ship":"Endeavour","what":"Cook's first voyage","obs":357,"start":"1768-08-27","end":"1771-07-10","min_lat":-60.07,"year":1768},"resolution":{"track":1486,"ship":"Resolution","what":"Cook's second voyage","obs":489,"start":"1772-07-14","end":"1774-12-17","min_lat":-71.17,"year":1772,"min_lat_date":"1774-01-30","min_lat_day":"30 January 1774"},"boussole":{"track":929,"ship":"La Boussole","what":"La Pérouse's expedition","obs":849,"start":"1785-08-01","end":"1788-01-24","min_lat":-60.63,"year":1785},"malaspina":{"tracks":[138,923,924,925,948,949],"n":6,"obs":219}},"legs":1321,"routes_top":[{"a":"batavia","b":"home","a_label":"Batavia and the Sunda Strait","b_label":"Home waters (North Sea, Channel and approaches)","n":252,"by":{"dutch":236,"british":14,"other":2},"lead":"dutch","median_days":100.66666666674428},{"a":"cape","b":"home","a_label":"Cape of Good Hope (Table Bay, False Bay)","b_label":"Home waters (North Sea, Channel and approaches)","n":242,"by":{"british":63,"dutch":177,"french":1,"other":1},"lead":"dutch","median_days":72.91666666674428},{"a":"batavia","b":"cape","a_label":"Batavia and the Sunda Strait","b_label":"Cape of Good Hope (Table Bay, False Bay)","n":103,"by":{"dutch":91,"british":12},"lead":"dutch","median_days":45.25},{"a":"home","b":"suriname","a_label":"Home waters (North Sea, Channel and approaches)","b_label":"Suriname","n":60,"by":{"dutch":60},"lead":"dutch","median_days":39.875},{"a":"goldcoast","b":"home","a_label":"Gold Coast and Bight of Benin","b_label":"Home waters (North Sea, Channel and approaches)","n":37,"by":{"dutch":31,"british":6},"lead":"dutch","median_days":47.95833333337214},{"a":"barbados","b":"home","a_label":"Barbados","b_label":"Home waters (North Sea, Channel and approaches)","n":30,"by":{"british":18,"dutch":12},"lead":"british","median_days":42.52083333331393},{"a":"home","b":"rio","a_label":"Home waters (North Sea, Channel and approaches)","b_label":"Rio de Janeiro","n":26,"by":{"dutch":25,"british":1},"lead":"dutch","median_days":46.58333333337214},{"a":"coruna","b":"home","a_label":"La Coruña and Ferrol","b_label":"Home waters (North Sea, Channel and approaches)","n":26,"by":{"british":14,"dutch":5,"spanish":4,"french":3},"lead":"british","median_days":7.5},{"a":"antigua","b":"suriname","a_label":"Antigua and the Leewards","b_label":"Suriname","n":25,"by":{"dutch":25},"lead":"dutch","median_days":12.0},{"a":"antigua","b":"home","a_label":"Antigua and the Leewards","b_label":"Home waters (North Sea, Channel and approaches)","n":22,"by":{"dutch":11,"british":9,"french":2},"lead":"dutch","median_days":43.125},{"a":"cadiz","b":"home","a_label":"Cádiz","b_label":"Home waters (North Sea, Channel and approaches)","n":22,"by":{"dutch":11,"french":2,"british":7,"spanish":2},"lead":"dutch","median_days":16.04166666662786},{"a":"curacao","b":"suriname","a_label":"Curaçao","b_label":"Suriname","n":20,"by":{"dutch":20},"lead":"dutch","median_days":21.5}],"routes_by_nation":{"british":[{"a":"cape","b":"home","a_label":"Cape of Good Hope (Table Bay, False Bay)","b_label":"Home waters (North Sea, Channel and approaches)","n":63},{"a":"barbados","b":"home","a_label":"Barbados","b_label":"Home waters (North Sea, Channel and approaches)","n":18},{"a":"ceylon","b":"home","a_label":"Ceylon (Colombo, Point de Galle, Trincomalee)","b_label":"Home waters (North Sea, Channel and approaches)","n":15},{"a":"batavia","b":"home","a_label":"Batavia and the Sunda Strait","b_label":"Home waters (North Sea, Channel and approaches)","n":14},{"a":"coruna","b":"home","a_label":"La Coruña and Ferrol","b_label":"Home waters (North Sea, Channel and approaches)","n":14},{"a":"batavia","b":"cape","a_label":"Batavia and the Sunda Strait","b_label":"Cape of Good Hope (Table Bay, False Bay)","n":12}],"dutch":[{"a":"batavia","b":"home","a_label":"Batavia and the Sunda Strait","b_label":"Home waters (North Sea, Channel and approaches)","n":236},{"a":"cape","b":"home","a_label":"Cape of Good Hope (Table Bay, False Bay)","b_label":"Home waters (North Sea, Channel and approaches)","n":177},{"a":"batavia","b":"cape","a_label":"Batavia and the Sunda Strait","b_label":"Cape of Good Hope (Table Bay, False Bay)","n":91},{"a":"home","b":"suriname","a_label":"Home waters (North Sea, Channel and approaches)","b_label":"Suriname","n":60},{"a":"goldcoast","b":"home","a_label":"Gold Coast and Bight of Benin","b_label":"Home waters (North Sea, Channel and approaches)","n":31},{"a":"home","b":"rio","a_label":"Home waters (North Sea, Channel and approaches)","b_label":"Rio de Janeiro","n":25}],"spanish":[{"a":"coruna","b":"plate","a_label":"La Coruña and Ferrol","b_label":"River Plate (Montevideo, Buenos Aires)","n":17},{"a":"cadiz","b":"coruna","a_label":"Cádiz","b_label":"La Coruña and Ferrol","n":14},{"a":"coruna","b":"puertorico","a_label":"La Coruña and Ferrol","b_label":"Puerto Rico","n":14},{"a":"havana","b":"puertorico","a_label":"Havana","b_label":"Puerto Rico","n":12},{"a":"coruna","b":"havana","a_label":"La Coruña and Ferrol","b_label":"Havana","n":9},{"a":"cadiz","b":"havana","a_label":"Cádiz","b_label":"Havana","n":7}],"french":[{"a":"coruna","b":"home","a_label":"La Coruña and Ferrol","b_label":"Home waters (North Sea, Channel and approaches)","n":3},{"a":"antigua","b":"home","a_label":"Antigua and the Leewards","b_label":"Home waters (North Sea, Channel and approaches)","n":2},{"a":"cadiz","b":"home","a_label":"Cádiz","b_label":"Home waters (North Sea, Channel and approaches)","n":2},{"a":"home","b":"newyork","a_label":"Home waters (North Sea, Channel and approaches)","b_label":"New York","n":2},{"a":"cape","b":"home","a_label":"Cape of Good Hope (Table Bay, False Bay)","b_label":"Home waters (North Sea, Channel and approaches)","n":1},{"a":"cadiz","b":"lisbon","a_label":"Cádiz","b_label":"Lisbon","n":1}],"other":[{"a":"batavia","b":"home","a_label":"Batavia and the Sunda Strait","b_label":"Home waters (North Sea, Channel and approaches)","n":2},{"a":"cape","b":"home","a_label":"Cape of Good Hope (Table Bay, False Bay)","b_label":"Home waters (North Sea, Channel and approaches)","n":1},{"a":"batavia","b":"canton","a_label":"Batavia and the Sunda Strait","b_label":"Canton (Pearl River)","n":1}]},"dur":{"nl_batavia":{"label":"Home waters to Batavia","n":219,"median":101.7,"q1":93.7,"q3":118.7,"min":79.7,"max":231.7,"first_year":1662,"last_year":1854,"fastest":{"ship":"ADMIRAAL JAN EVERTSEN","days":79.7,"year":1842},"by_decade":{"1660":{"n":1,"median":190.7},"1750":{"n":3,"median":175.7},"1760":{"n":2,"median":190.7},"1780":{"n":1,"median":216.7},"1800":{"n":2,"median":178.7},"1810":{"n":6,"median":169.2},"1820":{"n":13,"median":112.7},"1830":{"n":58,"median":103.7},"1840":{"n":105,"median":97.7},"1850":{"n":28,"median":100.2}},"n_via_cape":44,"n_pre1820":15,"median_pre1820":175.7,"n_post1820":204,"median_post1820":100.7,"via":{"cape":44,"canaries":23,"madeira":19,"capeverde":18,"rio":15}},"batavia_nl":{"label":"Batavia to home waters","n":131,"median":110.3,"q1":99.8,"q3":120.3,"min":82.3,"max":234.3,"first_year":1819,"last_year":1854,"fastest":{"ship":"WALVISCH","days":82.3,"year":1847},"by_decade":{"1810":{"n":1,"median":110.3},"1820":{"n":14,"median":107.3},"1830":{"n":31,"median":114.3},"1840":{"n":67,"median":109.3},"1850":{"n":18,"median":110.8}},"n_via_cape":42,"n_pre1820":1,"median_pre1820":110.3,"n_post1820":130,"median_post1820":110.3,"via":{"sthelena":71,"cape":42,"ascension":36,"mauritius":2}},"nl_cape":{"label":"Home waters to the Cape","n":79,"median":85.0,"q1":67.9,"q3":97.95,"min":50.0,"max":265.0,"first_year":1662,"last_year":1853,"fastest":{"ship":"BROMO","days":50.0,"year":1844},"by_decade":{"1660":{"n":1,"median":106.9},"1750":{"n":3,"median":93.9},"1760":{"n":7,"median":95.0},"1770":{"n":4,"median":108.4},"1780":{"n":10,"median":107.9},"1790":{"n":12,"median":93.4},"1800":{"n":3,"median":93.0},"1810":{"n":6,"median":76.45},"1820":{"n":2,"median":76.9},"1830":{"n":8,"median":73.45},"1840":{"n":16,"median":67.45},"1850":{"n":7,"median":66.9}},"n_via_cape":0,"n_pre1820":46,"median_pre1820":95.9,"n_post1820":33,"median_post1820":67.9,"via":{"canaries":25,"capeverde":12,"madeira":9,"coruna":2,"cadiz":1}},"cape_batavia":{"label":"Cape to Batavia","n":54,"median":51.8,"q1":42.8,"q3":61.55,"min":32.8,"max":95.8,"first_year":1663,"last_year":1853,"fastest":{"ship":"EUROPA","days":32.8,"year":1842},"by_decade":{"1660":{"n":1,"median":70.8},"1670":{"n":1,"median":44.8},"1750":{"n":4,"median":67.3},"1760":{"n":2,"median":68.8},"1780":{"n":2,"median":71.3},"1800":{"n":2,"median":75.8},"1810":{"n":5,"median":51.8},"1820":{"n":3,"median":61.9},"1830":{"n":11,"median":52.8},"1840":{"n":18,"median":42.8},"1850":{"n":5,"median":44.8}},"n_via_cape":0,"n_pre1820":17,"median_pre1820":70.8,"n_post1820":37,"median_post1820":44.8,"via":{}},"channel_india":{"label":"Home waters to India (Bombay, Madras, Bengal)","n":18,"median":133.3,"q1":117.725,"q3":171.8,"min":102.8,"max":224.8,"first_year":1754,"last_year":1825,"fastest":{"ship":"INGLIS","days":102.8,"year":1825},"by_decade":{"1750":{"n":1,"median":224.8},"1770":{"n":2,"median":137.3},"1780":{"n":4,"median":161.8},"1790":{"n":1,"median":109.8},"1800":{"n":4,"median":162.75},"1810":{"n":2,"median":123.30000000000001},"1820":{"n":4,"median":115.75}},"n_via_cape":5,"n_pre1820":14,"median_pre1820":139.3,"n_post1820":4,"median_post1820":115.75,"via":{"cape":5,"madeira":4,"capeverde":3,"coruna":1,"sthelena":1}},"india_channel":{"label":"India to home waters","n":7,"median":171.2,"q1":150.25,"q3":173.75,"min":145.2,"max":180.2,"first_year":1764,"last_year":1813,"fastest":{"ship":"DOVER CASTLE","days":145.2,"year":1803},"by_decade":{"1760":{"n":2,"median":175.7},"1790":{"n":1,"median":174.3},"1800":{"n":2,"median":148.2},"1810":{"n":2,"median":161.25}},"n_via_cape":2,"n_pre1820":7,"median_pre1820":171.2,"n_post1820":0,"median_post1820":null,"via":{"ascension":2,"cape":2,"sthelena":1,"capeverde":1}},"channel_caribbean":{"label":"Home waters to the Caribbean","n":27,"median":38.1,"q1":31.15,"q3":41.2,"min":21.2,"max":103.1,"first_year":1752,"last_year":1822,"fastest":{"ship":"STORK","days":21.2,"year":1802},"by_decade":{"1750":{"n":4,"median":38.650000000000006},"1760":{"n":4,"median":41.150000000000006},"1770":{"n":1,"median":31.1},"1780":{"n":1,"median":38.1},"1790":{"n":9,"median":35.1},"1800":{"n":7,"median":31.2},"1820":{"n":1,"median":39.2}},"n_via_cape":0,"n_pre1820":26,"median_pre1820":38.1,"n_post1820":1,"median_post1820":39.2,"via":{"madeira":5,"coruna":2}},"caribbean_channel":{"label":"Caribbean to home waters","n":3,"median":42.9,"q1":36.9,"q3":47.9,"min":30.9,"max":52.9,"first_year":1773,"last_year":1808,"fastest":{"ship":"SEAHORSE","days":30.9,"year":1773},"by_decade":{"1770":{"n":1,"median":30.9},"1800":{"n":2,"median":47.9}},"n_via_cape":0,"n_pre1820":3,"median_pre1820":42.9,"n_post1820":0,"median_post1820":null,"via":{}},"channel_namerica":{"label":"Home waters to Halifax and New York","n":8,"median":44.150000000000006,"q1":36.175000000000004,"q3":53.425000000000004,"min":32.2,"max":95.2,"first_year":1753,"last_year":1790,"fastest":{"ship":"FALKLAND","days":32.2,"year":1760},"by_decade":{"1750":{"n":2,"median":36.150000000000006},"1760":{"n":3,"median":39.1},"1770":{"n":2,"median":72.2},"1790":{"n":1,"median":54.1}},"n_via_cape":0,"n_pre1820":8,"median_pre1820":44.150000000000006,"n_post1820":0,"median_post1820":null,"via":{}},"spain_havana":{"label":"Cádiz or La Coruña to Havana","n":4,"median":53.7,"q1":47.7,"q3":66.95,"min":46.2,"max":90.2,"first_year":1766,"last_year":1776,"fastest":{"ship":"EL PATAGON","days":46.2,"year":1776},"by_decade":{"1760":{"n":2,"median":53.7},"1770":{"n":2,"median":68.2}},"n_via_cape":0,"n_pre1820":4,"median_pre1820":53.7,"n_post1820":0,"median_post1820":null,"via":{"puertorico":3}},"havana_spain":{"label":"Havana to Cádiz or La Coruña","n":15,"median":80.8,"q1":45.3,"q3":91.8,"min":26.8,"max":126.8,"first_year":1765,"last_year":1794,"fastest":{"ship":"EL COLON","days":26.8,"year":1774},"by_decade":{"1760":{"n":4,"median":50.3},"1770":{"n":3,"median":37.8},"1780":{"n":1,"median":80.8},"1790":{"n":7,"median":96.8}},"n_via_cape":0,"n_pre1820":15,"median_pre1820":80.8,"n_post1820":0,"median_post1820":null,"via":{}},"spain_plate":{"label":"Cádiz or La Coruña to the River Plate","n":14,"median":70.44999999999999,"q1":65.1,"q3":74.175,"min":61.1,"max":116.1,"first_year":1769,"last_year":1793,"fastest":{"ship":"LA DIANA","days":61.1,"year":1775},"by_decade":{"1760":{"n":1,"median":74.1},"1770":{"n":10,"median":69.1},"1780":{"n":2,"median":90.1},"1790":{"n":1,"median":74.2}},"n_via_cape":0,"n_pre1820":14,"median_pre1820":70.44999999999999,"n_post1820":0,"median_post1820":null,"via":{"canaries":5,"madeira":2}},"plate_spain":{"label":"River Plate to Cádiz or La Coruña","n":6,"median":90.9,"q1":79.65,"q3":117.15,"min":75.9,"max":125.8,"first_year":1773,"last_year":1798,"fastest":{"ship":"EL AGUILA","days":75.9,"year":1790},"by_decade":{"1770":{"n":3,"median":123.9},"1790":{"n":3,"median":77.9}},"n_via_cape":0,"n_pre1820":6,"median_pre1820":90.9,"n_post1820":0,"median_post1820":null,"via":{}},"spain_puertorico":{"label":"Cádiz or La Coruña to Puerto Rico","n":12,"median":37.6,"q1":35.1,"q3":42.1,"min":29.1,"max":47.1,"first_year":1766,"last_year":1796,"fastest":{"ship":"EL CORTES","days":29.1,"year":1793},"by_decade":{"1760":{"n":3,"median":35.1},"1770":{"n":6,"median":39.6},"1790":{"n":3,"median":35.1}},"n_via_cape":0,"n_pre1820":12,"median_pre1820":37.6,"n_post1820":0,"median_post1820":null,"via":{"canaries":2,"madeira":1}},"nl_suriname":{"label":"Home waters to Suriname","n":40,"median":35.150000000000006,"q1":30.1,"q3":40.425000000000004,"min":21.1,"max":74.2,"first_year":1759,"last_year":1852,"fastest":{"ship":"CURACAO","days":21.1,"year":1828},"by_decade":{"1750":{"n":1,"median":71.1},"1760":{"n":2,"median":49.099999999999994},"1770":{"n":3,"median":40.1},"1780":{"n":2,"median":55.1},"1790":{"n":1,"median":64.1},"1800":{"n":2,"median":57.2},"1810":{"n":1,"median":29.1},"1820":{"n":4,"median":28.200000000000003},"1830":{"n":10,"median":34.150000000000006},"1840":{"n":12,"median":33.6},"1850":{"n":2,"median":34.650000000000006}},"n_via_cape":0,"n_pre1820":12,"median_pre1820":48.650000000000006,"n_post1820":28,"median_post1820":33.150000000000006,"via":{"canaries":3,"madeira":3,"coruna":1}}},"volta":{"30":{"out":{"n":561,"median_lon":-18.45,"q1":-19.526875,"q3":-17.48725},"home":{"n":578,"median_lon":-36.37531723143475,"q1":-38.71685185185185,"q3":-33.56054411764706}},"20":{"out":{"n":559,"median_lon":-23.411954887218045,"q1":-24.570552884615388,"q3":-20.515228739002932},"home":{"n":576,"median_lon":-34.211777777777776,"q1":-36.53547488192358,"q3":-31.601045245119828}},"0":{"out":{"n":549,"median_lon":-22.956893203883496,"q1":-24.69538461538462,"q3":-21.118750000000002},"home":{"n":581,"median_lon":-21.227038626609442,"q1":-23.38,"q3":-19.945604395604395}},"azores38":{"out":{"n":597,"azores":13,"median_lon":-15.116728624535318,"share":0.021775544388609715},"home":{"n":577,"azores":379,"median_lon":-32.92156862745098,"share":0.6568457538994801}}},"brouwer":{"40":{"dutch":{"n":338,"median_lat":-38.54494549266247,"share_south30":0.9763313609467456,"share_south35":0.9585798816568047},"british":{"n":212,"median_lat":-36.285381777108434,"share_south30":0.7358490566037735,"share_south35":0.5754716981132075},"spanish":{"n":5,"median_lat":-36.03203562340967,"share_south30":1.0,"share_south35":1.0}},"60":{"dutch":{"n":326,"median_lat":-38.67316438886523,"share_south30":0.9969325153374233,"share_south35":0.9815950920245399},"british":{"n":136,"median_lat":-37.49458708414873,"share_south30":0.8676470588235294,"share_south35":0.7794117647058824},"spanish":{"n":6,"median_lat":-37.644000000000005,"share_south30":1.0,"share_south35":0.8333333333333334}},"75":{"dutch":{"n":323,"median_lat":-37.88404255319149,"share_south30":0.9969040247678018,"share_south35":0.9318885448916409},"british":{"n":122,"median_lat":-35.63352287931496,"share_south30":0.8360655737704918,"share_south35":0.5901639344262295}},"90":{"dutch":{"n":328,"median_lat":-33.85851830663616,"share_south30":0.8445121951219512,"share_south35":0.3231707317073171},"british":{"n":92,"median_lat":-15.205303030303023,"share_south30":0.43478260869565216,"share_south35":0.2391304347826087}},"dutch_java_minlat":{"n":273,"median":-39.63,"share_south35":1.0,"share_south30":1.0}},"volta_shift_30":17.92531723143475,"volta_shift_30_km":1724.3931844495248,"volta_shift_20":10.799822890559732,"euro_south_n":1139,"nlb_speedup":0.42686397268070575,"nlb_share_cape":0.2009132420091324,"cape_batavia_speedup":0.36723163841807915,"wind":{"n_obs":259522,"n_dir":241792,"n_calm":1999,"n_var":9348,"n_none":6383,"n_force":224899,"agree":{"cells":537,"cells_steady":318,"share45_steady":0.9685534591194969,"share30_steady":0.9339622641509434,"median_steady":9.2,"share45_steady_obs":0.9913433843207735,"share45_all":0.8845437616387337,"median_all":12.2,"share45_all_obs":0.9143906057693929,"obs_n":149769,"obs_share45":0.6539604323992282,"obs_share90":0.8448877938692253,"obs_median":28.663295098340825},"belt_corr":0.9298005704893667,"named":{"ne_trades":{"n":21652,"share":0.7269074450397192},"se_trades":{"n":18165,"share":0.6840627580511973},"forties":{"n":9788,"share":0.7004495300367797},"westerlies_n":{"n":27423,"share":0.5991321153776027},"monsoon_djf":{"n":831,"share":0.6462093862815884},"monsoon_jja":{"n":982,"share":0.8105906313645621},"se_trades_indian":{"n":8669,"share":0.7006575152843465},"doldrums":{"lat0":0,"lat1":5,"calm_var":0.07851239669421488,"calm_var_trades":0.02677418333783106}},"cell":5,"min_obs":25,"grid_cells":{"all":537,"djf":328,"jja":356},"share_dir":0.931682092462296,"belts":{"atlantic":[{"lat0":-60,"lat1":-55,"n":243,"east_share":0.26337448559670784,"u":0.41228239377915543,"v":-0.15747790810732173,"calm_var":0.03571428571428571,"calm":0.01984126984126984,"ncep_u":5.51489605721644,"ncep_unit_u":0.9295932916426185,"force":10.53081081081081},{"lat0":-55,"lat1":-50,"n":777,"east_share":0.16602316602316602,"u":0.4868945443757231,"v":-0.11899680001215587,"calm_var":0.09545983701979045,"calm":0.02677532013969732,"ncep_u":6.484526309652038,"ncep_unit_u":0.9559371012445428,"force":10.611012658227846},{"lat0":-50,"lat1":-45,"n":359,"east_share":0.18662952646239556,"u":0.46051133942814265,"v":0.007173862087153488,"calm_var":0.03753351206434316,"calm":0.00804289544235925,"ncep_u":5.524584765752414,"ncep_unit_u":0.9600003664784966,"force":10.660481099656357},{"lat0":-45,"lat1":-40,"n":498,"east_share":0.28313253012048195,"u":0.32839422350617714,"v":-0.14310537876388416,"calm_var":0.056818181818181816,"calm":0.03787878787878788,"ncep_u":4.551515407810327,"ncep_unit_u":0.9154717608064359,"force":9.326682692307692},{"lat0":-40,"lat1":-35,"n":7490,"east_share":0.3620827770360481,"u":0.22040461351549592,"v":-0.017499519578252264,"calm_var":0.03628409675759135,"calm":0.005275347400926403,"ncep_u":2.7187956531069415,"ncep_unit_u":0.6727543049704521,"force":8.86143790849673},{"lat0":-35,"lat1":-30,"n":10156,"east_share":0.4734147302087436,"u":0.046762726190098025,"v":0.07133836340813675,"calm_var":0.03998487569713584,"calm":0.006522355610171094,"ncep_u":0.9359153314924259,"ncep_unit_u":0.33088698886813644,"force":7.91060814383924},{"lat0":-30,"lat1":-25,"n":6697,"east_share":0.6771688815887711,"u":-0.27209899904013257,"v":0.032304332685430356,"calm_var":0.04953164916264547,"calm":0.009792790235594664,"ncep_u":-1.6468237997109736,"ncep_unit_u":-0.49823106539337614,"force":7.201856891307828},{"lat0":-25,"lat1":-20,"n":5946,"east_share":0.8010427177934746,"u":-0.5084104215460539,"v":0.04143698905244871,"calm_var":0.045739046701974,"calm":0.006900978976087305,"ncep_u":-3.883192225855051,"ncep_unit_u":-0.8434005877376354,"force":6.409289617486339},{"lat0":-20,"lat1":-15,"n":4998,"east_share":0.9469787915166067,"u":-0.7571679242389304,"v":0.1627746425667468,"calm_var":0.03457600927177902,"calm":0.003670079196445818,"ncep_u":-5.811104323469011,"ncep_unit_u":-0.8883858317318591,"force":6.9196206671026825},{"lat0":-15,"lat1":-10,"n":4081,"east_share":0.9838274932614556,"u":-0.8481714719775016,"v":0.27372555597798526,"calm_var":0.019932756964457253,"calm":0.001440922190201729,"ncep_u":-6.884230674636124,"ncep_unit_u":-0.8996883609079267,"force":7.42326139088729},{"lat0":-10,"lat1":-5,"n":4111,"east_share":0.9768912673315495,"u":-0.8016354086722899,"v":0.4269141277923906,"calm_var":0.023979107312440646,"calm":0.0011870845204178537,"ncep_u":-6.135133998597761,"ncep_unit_u":-0.8386450614011317,"force":7.722260455267336},{"lat0":-5,"lat1":0,"n":6989,"east_share":0.9032765774788954,"u":-0.6242684709811321,"v":0.5307342906362662,"calm_var":0.030113794060505135,"calm":0.004024424091035248,"ncep_u":-3.6129459775030104,"ncep_unit_u":-0.6925297880117515,"force":6.245331278890601},{"lat0":0,"lat1":5,"n":10258,"east_share":0.7230454279586664,"u":-0.31312612049539584,"v":0.3885868644621162,"calm_var":0.07851239669421488,"calm":0.015540783327344591,"ncep_u":-1.3253991278438324,"ncep_unit_u":-0.38437176991437383,"force":4.600887544125063},{"lat0":5,"lat1":10,"n":9446,"east_share":0.6782765191615499,"u":-0.24812179109407767,"v":-0.10894434967843558,"calm_var":0.07155494397483782,"calm":0.013760566149007274,"ncep_u":-1.1194453752054558,"ncep_unit_u":-0.12457176049721551,"force":4.7570137693631676},{"lat0":10,"lat1":15,"n":7977,"east_share":0.8501943086373324,"u":-0.5432711035984779,"v":-0.37910297966390705,"calm_var":0.034378404551507084,"calm":0.005326231691078562,"ncep_u":-4.392382610228842,"ncep_unit_u":-0.572461246183953,"force":6.305223196753501},{"lat0":15,"lat1":20,"n":9651,"east_share":0.9251890995751736,"u":-0.6982119299308723,"v":-0.3012132480492536,"calm_var":0.018209562563580875,"calm":0.004781281790437436,"ncep_u":-5.855599723517644,"ncep_unit_u":-0.8551828270538534,"force":6.861353761719644},{"lat0":20,"lat1":25,"n":8021,"east_share":0.8759506295973071,"u":-0.591479915526432,"v":-0.31636795789051203,"calm_var":0.025631681243926143,"calm":0.0060738581146744415,"ncep_u":-5.018229694508295,"ncep_unit_u":-0.8476011318543688,"force":6.807527465075275},{"lat0":25,"lat1":30,"n":9221,"east_share":0.7182518165058019,"u":-0.331078707310481,"v":-0.214023149567995,"calm_var":0.04167532737476616,"calm":0.007794637289544793,"ncep_u":-2.734301627372313,"ncep_unit_u":-0.749247377049006,"force":6.1652128401953945},{"lat0":30,"lat1":35,"n":11788,"east_share":0.5492025788937903,"u":-0.05622738050710586,"v":-0.09743308361999449,"calm_var":0.046509746825204236,"calm":0.010353474075871552,"ncep_u":-0.33416186290146666,"ncep_unit_u":-0.17614319234132886,"force":6.645829505787249},{"lat0":35,"lat1":40,"n":15193,"east_share":0.43414730467978674,"u":0.11460961822885898,"v":-0.04943972884995304,"calm_var":0.04205548549810845,"calm":0.009583858764186633,"ncep_u":1.3964977451208869,"ncep_unit_u":0.5153591188893916,"force":7.791600877192983},{"lat0":40,"lat1":45,"n":18419,"east_share":0.3843313969270862,"u":0.17488999692443422,"v":0.03664995016857572,"calm_var":0.033782720453234015,"calm":0.008498137753763835,"ncep_u":2.395377568329252,"ncep_unit_u":0.8114157674919955,"force":8.720451044426644},{"lat0":45,"lat1":50,"n":16366,"east_share":0.40987412929243555,"u":0.13299888482632022,"v":0.09451740900335565,"calm_var":0.035705868489276454,"calm":0.0055974546311572,"ncep_u":2.989818241454346,"ncep_unit_u":0.9252650757275716,"force":9.204599703244952},{"lat0":50,"lat1":55,"n":1130,"east_share":0.4964601769911504,"u":-0.0022159570031648323,"v":0.1588721450099211,"calm_var":0.06611570247933884,"calm":0.0024793388429752068,"ncep_u":3.459434795015417,"ncep_unit_u":0.908828877879146,"force":9.066258246936851},{"lat0":55,"lat1":60,"n":1378,"east_share":0.40493468795355586,"u":0.15632076952243193,"v":-0.005758559083197922,"calm_var":0.10403120936280884,"calm":0.0,"ncep_u":2.136773420566141,"ncep_unit_u":0.7591885969353962,"force":9.78573717948718},{"lat0":60,"lat1":65,"n":564,"east_share":0.5230496453900709,"u":-0.041047253314619336,"v":0.06467201772890237,"calm_var":0.0799347471451876,"calm":0.0032626427406199023,"ncep_u":0.3133370626880365,"ncep_unit_u":0.0578541975859766,"force":9.009505703422054}],"indian":[{"lat0":-45,"lat1":-40,"n":957,"east_share":0.30616509926854757,"u":0.2950259623569871,"v":-0.17368883930840295,"calm_var":0.03137651821862348,"calm":0.0010121457489878543,"ncep_u":4.953047599584029,"ncep_unit_u":0.950962838997905,"force":9.513355408388522},{"lat0":-40,"lat1":-35,"n":11491,"east_share":0.3119832912714298,"u":0.28536752628974116,"v":0.017345915498441753,"calm_var":0.03937468650727303,"calm":0.0058518642367497075,"ncep_u":3.138241352926172,"ncep_unit_u":0.7319827531555957,"force":9.296117494440326},{"lat0":-35,"lat1":-30,"n":7525,"east_share":0.49142857142857144,"u":0.00036491425439761217,"v":0.02549818388067348,"calm_var":0.048672566371681415,"calm":0.008723135271807838,"ncep_u":-0.5124149932151145,"ncep_unit_u":-0.24581947977883006,"force":7.856535211267605},{"lat0":-30,"lat1":-25,"n":6168,"east_share":0.7326523994811932,"u":-0.39074165918595344,"v":0.007176542312086907,"calm_var":0.047118801174107834,"calm":0.004634636181059787,"ncep_u":-4.0299815126884555,"ncep_unit_u":-0.8884779017221698,"force":6.766774854800136},{"lat0":-25,"lat1":-20,"n":4847,"east_share":0.8918918918918919,"u":-0.6536803381324668,"v":0.17531048526252738,"calm_var":0.040007922360863535,"calm":0.003961180431768667,"ncep_u":-5.788421923485597,"ncep_unit_u":-0.8873086973694998,"force":7.173362162162163},{"lat0":-20,"lat1":-15,"n":4218,"east_share":0.8982930298719772,"u":-0.6330991606422215,"v":0.4034509757944583,"calm_var":0.03168044077134986,"calm":0.002295684113865932,"ncep_u":-5.927395502197707,"ncep_unit_u":-0.7608863846837686,"force":7.885892012938542},{"lat0":-15,"lat1":-10,"n":3678,"east_share":0.83278955954323,"u":-0.507695390033608,"v":0.4231711715550021,"calm_var":0.03767660910518053,"calm":0.004971219256933543,"ncep_u":-4.411955057916587,"ncep_unit_u":-0.6428578027459452,"force":7.051811385853938},{"lat0":-10,"lat1":-5,"n":4470,"east_share":0.6727069351230425,"u":-0.2748476460953168,"v":0.2614757432577358,"calm_var":0.08682328907048008,"calm":0.012665985699693565,"ncep_u":-1.875835357656095,"ncep_unit_u":-0.23299625783364916,"force":5.114474885844749},{"lat0":-5,"lat1":0,"n":1790,"east_share":0.4770949720670391,"u":0.05334463252889191,"v":0.2129659208924488,"calm_var":0.1255495847581827,"calm":0.008304836345872008,"ncep_u":0.26007399627010624,"ncep_unit_u":0.22775974440926658,"force":4.65747320924986},{"lat0":0,"lat1":5,"n":1782,"east_share":0.3395061728395062,"u":0.24263524320115523,"v":0.13748779901490574,"calm_var":0.10855427713856929,"calm":0.014507253626813406,"ncep_u":1.6851535064636136,"ncep_unit_u":0.3876770223183491,"force":5.619248554913296},{"lat0":5,"lat1":10,"n":2670,"east_share":0.3685393258426966,"u":0.2208187499867039,"v":-0.023114969153907018,"calm_var":0.09583474432780223,"calm":0.012190992211310531,"ncep_u":1.5892354956723966,"ncep_unit_u":0.22480645983749178,"force":6.369781078967944},{"lat0":10,"lat1":15,"n":1454,"east_share":0.5020632737276479,"u":-0.02629793056077054,"v":0.02386385536320907,"calm_var":0.07916402786573781,"calm":0.006966434452184927,"ncep_u":0.19952163251525154,"ncep_unit_u":-0.0629666114883636,"force":6.475814275814276},{"lat0":15,"lat1":20,"n":1067,"east_share":0.4217432052483599,"u":0.11561856931277335,"v":-0.06311313195098306,"calm_var":0.05658709106984969,"calm":0.007073386383731211,"ncep_u":0.9178252187990378,"ncep_unit_u":0.09739587910685968,"force":5.995219885277247},{"lat0":20,"lat1":25,"n":212,"east_share":0.5566037735849056,"u":-0.11267485391169645,"v":-0.11957252129417406,"calm_var":0.12757201646090535,"calm":0.0205761316872428,"ncep_u":-0.5428634463250603,"ncep_unit_u":-0.15147960170588456,"force":6.3053097345132745}]},"atl_east_15":0.9251890995751736,"atl_east_m15":0.9838274932614556,"ind_west_m40":0.6880167087285702,"atl_force_0":4.600887544125063,"ind_force_m40":9.296117494440326,"calm_ratio":2.932391838195841,"flip_n_atl":35,"flip_s_atl":-30,"flip_s_ind":-30,"n_belts":39,"sign_agree":0.9230769230769231},"modern":{"cell":2,"sail_squares":5634,"ais_squares":9223,"rho":0.22401037098550694,"top_nosail":0.3120260021668472,"top_nosail_share":0.3708354337770117,"top_n":923,"region":{"south_indian":{"label":"Southern Indian Ocean, 35 to 50 S","sail_share":0.05923191876271583,"ais_share":3.1799582206459934e-05},"red_sea":{"label":"Red Sea and Gulf of Aden","sail_share":0.0001224320772042275,"ais_share":0.01334457904192484},"malacca":{"label":"Strait of Malacca and Singapore","sail_share":0.000399704722637331,"ais_share":0.002540293192117891},"north_pacific":{"label":"North Pacific, 20 to 55 N","sail_share":0.0018904953097711602,"ais_share":0.039694583975274575},"south_atlantic_mid":{"label":"South Atlantic, 0 to 40 S, 30 W to 5 E","sail_share":0.1394105255576961,"ais_share":0.005141890051738209},"st_helena":{"label":"St Helena and Ascension seas","sail_share":0.02672980320844061,"ais_share":0.0010498191504349998}},"busiest":[{"lon":-7.0,"lat":49.0,"n":1752,"by":{"british":724,"dutch":977,"spanish":6,"french":42,"other":3}},{"lon":-9.0,"lat":49.0,"n":1400,"by":{"british":640,"dutch":716,"spanish":4,"french":37,"other":3}},{"lon":-5.0,"lat":49.0,"n":1292,"by":{"british":399,"dutch":849,"spanish":5,"french":37,"other":2}},{"lon":-13.0,"lat":43.0,"n":1103,"by":{"british":260,"dutch":418,"spanish":374,"french":50,"other":1}},{"lon":-9.0,"lat":47.0,"n":1094,"by":{"british":404,"dutch":603,"spanish":5,"french":81,"other":1}},{"lon":-11.0,"lat":47.0,"n":1046,"by":{"british":381,"dutch":587,"spanish":7,"french":70,"other":1}},{"lon":-11.0,"lat":49.0,"n":966,"by":{"british":486,"dutch":436,"spanish":3,"french":37,"other":4}},{"lon":-11.0,"lat":45.0,"n":940,"by":{"british":320,"dutch":474,"spanish":74,"french":70,"other":2}},{"lon":-11.0,"lat":43.0,"n":907,"by":{"british":214,"dutch":235,"spanish":424,"french":33,"other":1}},{"lon":-13.0,"lat":41.0,"n":822,"by":{"british":253,"dutch":347,"spanish":187,"french":35}}],"south_indian_ratio":1862.6634267755614},"hist":{"lat30_out":{"lo":-60,"step":5,"n":[0,0,0,1,0,0,1,88,450,21,0,0],"total":561},"lat30_home":{"lo":-60,"step":5,"n":[0,0,5,84,277,174,30,7,1,0,0,0],"total":578},"lat0_out":{"lo":-45,"step":5,"n":[0,0,1,119,340,78,3,6,2,0,0],"total":549},"lat0_home":{"lo":-45,"step":5,"n":[1,0,21,73,335,144,7,0,0,0,0],"total":581},"lon75_dutch":{"lo":-50,"step":2.5,"n":[0,0,0,11,192,97,17,5,0,1,0,0,0,0,0,0,0,0,0,0],"total":323},"lon75_british":{"lo":-50,"step":2.5,"n":[0,0,0,4,27,40,15,15,2,4,2,2,0,1,2,1,2,1,2,1],"total":122}},"ports_n":42,"retrieved":"2026"};
+const SITE = {"nations":[["british","British","British","#C2272D"],["dutch","Dutch","Dutch","#EE7A12"],["spanish","Spanish","Spanish","#B58A00"],["french","French","French","#2457A6"],["other","Other","Other (American, Swedish, Danish, Hamburg)","#3E8E7E"]],"groups":[["eic","East India companies"],["navy","Navies"],["correo","Spanish mail packets"],["chartered","Other chartered companies"],["merchant","Merchants and whalers"],["unknown","Not recorded"]],"decades":["pre","1750","1760","1770","1780","1790","1800","1810","1820","1830","1840","1850"],"famous":{"endeavour":636,"resolution":1486,"boussole":929,"malaspina":[138,923,924,925,948,949]},"ports":{"home":["Home waters (North Sea, Channel and approaches)","box",[-11.0,47.5,9.5,56.5]],"coruna":["La Coruña and Ferrol","circle",[-8.35,43.4,0.8]],"lisbon":["Lisbon","circle",[-9.25,38.7,0.7]],"cadiz":["Cádiz","circle",[-6.35,36.5,0.75]],"gibraltar":["Gibraltar","circle",[-5.35,36.1,0.35]],"toulon":["Toulon","circle",[5.9,43.1,0.6]],"cartagena_es":["Cartagena (Spain)","circle",[-0.98,37.6,0.5]],"madeira":["Madeira","circle",[-16.9,32.7,0.6]],"canaries":["Canary Islands","circle",[-15.6,28.3,1.2]],"capeverde":["Cape Verde Islands","circle",[-23.6,15.9,1.2]],"sthelena":["St Helena","circle",[-5.72,-15.95,0.6]],"ascension":["Ascension","circle",[-14.4,-7.95,0.5]],"halifax":["Halifax","circle",[-63.55,44.6,0.8]],"newyork":["New York","circle",[-74.0,40.5,0.8]],"hudson":["Hudson Bay (York Factory)","circle",[-92.4,57.0,2.5]],"havana":["Havana","circle",[-82.35,23.15,0.9]],"veracruz":["Veracruz","circle",[-96.1,19.2,0.9]],"puertorico":["Puerto Rico","circle",[-66.1,18.45,0.8]],"jamaica":["Jamaica","circle",[-76.8,17.95,0.8]],"antigua":["Antigua and the Leewards","circle",[-61.8,17.1,0.8]],"barbados":["Barbados","circle",[-59.6,13.1,0.8]],"curacao":["Curaçao","circle",[-68.95,12.1,0.7]],"suriname":["Suriname","circle",[-55.2,5.9,1.0]],"rio":["Rio de Janeiro","circle",[-43.15,-22.95,0.8]],"plate":["River Plate (Montevideo, Buenos Aires)","circle",[-57.0,-35.0,1.6]],"callao":["Callao (Lima)","circle",[-77.2,-12.05,0.9]],"valparaiso":["Valparaíso","circle",[-71.65,-33.0,0.8]],"goldcoast":["Gold Coast and Bight of Benin","box",[-3.5,3.5,3.5,7.0]],"angola":["Loango and Angola coast","box",[8.5,-10.0,13.5,-3.5]],"cape":["Cape of Good Hope (Table Bay, False Bay)","circle",[18.45,-34.0,1.0]],"mauritius":["Mauritius","circle",[57.5,-20.15,0.8]],"bombay":["Bombay","circle",[72.8,18.9,1.0]],"ceylon":["Ceylon (Colombo, Point de Galle, Trincomalee)","box",[79.3,5.6,81.8,9.0]],"madras":["Madras","circle",[80.3,13.1,1.0]],"bengal":["Bengal (Hooghly)","circle",[88.0,21.4,1.2]],"padang":["Padang","circle",[100.35,-0.95,0.8]],"batavia":["Batavia and the Sunda Strait","circle",[106.8,-6.05,1.0]],"sunda":["Sunda Strait","circle",[105.3,-6.4,1.1]],"manila":["Manila","circle",[120.9,14.55,0.9]],"canton":["Canton (Pearl River)","circle",[113.6,22.2,1.2]],"nagasaki":["Nagasaki (Deshima)","circle",[129.85,32.75,0.8]],"sydney":["Sydney (Port Jackson)","circle",[151.25,-33.85,0.9]]}};
+const fmt = n => n == null || n === "" ? "n/a" : Math.round(n).toLocaleString("en-GB");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const tip = document.getElementById("tip");
+function showTip(h, x, y) { tip.innerHTML = h; tip.style.display = "block"; const w = tip.offsetWidth; x = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, x)); tip.style.left = x + scrollX + "px"; tip.style.top = y + scrollY + "px"; }
+function hideTip() { tip.style.display = "none"; }
+document.addEventListener("click", hideTip);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const lbl = (svg, x, y, s, cls = "lab", anchor = "start") => { const t = el("text", { x, y, class: cls, "text-anchor": anchor }, svg); t.textContent = s; return t; };
+const redraws = [];
+function resp(box, render) { let last = 0; const go = force => { const w = Math.max(280, Math.round(box.clientWidth)); if (!force && Math.abs(w - last) < 4) return; last = w; box.innerHTML = ""; render(w, w < 560); }; new ResizeObserver(() => go()).observe(box); go(); redraws.push(() => go(true)); }
+const isDark = () => { const r = document.documentElement; return r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const small = () => innerWidth < 900;
+const NAT = SITE.nations.map(n => ({ k: n[0], s: n[1], l: n[2], c: n[3] }));
+const natCol = i => isDark() ? ["#F06A62", "#FF9A3D", "#E4BC3A", "#7FA8EE", "#6CC3B0"][i] : NAT[i].c;
+const GRP = SITE.groups;
+const DEC = SITE.decades;
+const decLabel = i => i < 0 ? "All years" : DEC[i] === "pre" ? "Before 1750" : DEC[i] + "s";
+const lonw = v => `${Math.abs(Math.round(v))}° ${v < 0 ? "W" : "E"}`, lats = v => `${Math.abs(Math.round(v))}° ${v < 0 ? "S" : "N"}`;
+const dstr = s => { const [y, m, d] = s.split("-"); return `${+d} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][+m - 1]} ${y}`; };
+
+/* hero mark: a compass rose */
+(function () {
+  const g = document.getElementById("heroMark");
+  el("circle", { cx: 60, cy: 60, r: 50, fill: "none", stroke: "currentColor", "stroke-width": 2 }, g);
+  el("circle", { cx: 60, cy: 60, r: 42, fill: "none", stroke: "currentColor", "stroke-width": .8, "stroke-dasharray": "2 3" }, g);
+  const cols = [NAT[0].c, NAT[1].c, NAT[2].c, NAT[3].c];
+  [0, 90, 180, 270].forEach((a, i) => { const r = a * Math.PI / 180; const x = 60 + 48 * Math.sin(r), y = 60 - 48 * Math.cos(r); const xl = 60 + 9 * Math.sin(r - Math.PI / 2), yl = 60 - 9 * Math.cos(r - Math.PI / 2); const xr = 60 + 9 * Math.sin(r + Math.PI / 2), yr = 60 - 9 * Math.cos(r + Math.PI / 2);
+    el("path", { d: `M${x} ${y} L${xl} ${yl} L60 60 Z`, fill: cols[i] }, g); el("path", { d: `M${x} ${y} L${xr} ${yr} L60 60 Z`, fill: cols[i], opacity: .55 }, g); });
+  [45, 135, 225, 315].forEach(a => { const r = a * Math.PI / 180; el("path", { d: `M${60 + 30 * Math.sin(r)} ${60 - 30 * Math.cos(r)} L${60 + 6 * Math.sin(r - 1.2)} ${60 - 6 * Math.cos(r - 1.2)} L60 60 L${60 + 6 * Math.sin(r + 1.2)} ${60 - 6 * Math.cos(r + 1.2)} Z`, fill: "currentColor", opacity: .7 }, g); });
+  el("circle", { cx: 60, cy: 60, r: 3.5, fill: "currentColor" }, g);
+})();
+
+/* ---------- map ---------- */
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const ESRI_ATT = 'Tiles &copy; Esri, HERE, Garmin, GEBCO, NOAA NGDC, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS user community';
+const LYDEF = { base: "plain", hills: false, hillK: 45, labels: false, labelK: 70, voy: true, alpha: 28, arrows: true, season: "all", belts: true, ports: false, today: false, todayK: 70 };
+const LY = { ...LYDEF };
+try { Object.assign(LY, JSON.parse(localStorage.getItem("sbs_layers") || "{}")); } catch (e) {}
+const saveLY = () => { try { localStorage.setItem("sbs_layers", JSON.stringify(LY)); } catch (e) {} };
+const map = L.map("map", { minZoom: 1, maxZoom: 10, worldCopyJump: false, maxBounds: [[-82, -260], [86, 260]], zoomSnap: .5, preferCanvas: true }).setView([8, 10], small() ? 1 : 2);
+["hills:250", "today:300", "voy:400", "hl:450", "labels:500", "arrows:560", "names:620"].forEach(s => { const [n, z] = s.split(":"); map.createPane(n); map.getPane(n).style.zIndex = z; });
+["hills", "today", "labels", "names"].forEach(n => map.getPane(n).style.pointerEvents = "none");
+const vCanvas = L.canvas({ pane: "voy", padding: .4, tolerance: 5 });
+const hCanvas = vCanvas;      // one canvas, so clicks reach every line; highlights are drawn last
+let base = null, hills = null, labels = null;
+const today = L.imageOverlay("data/today_2deg.png", [[-85.0511, -180], [85.0511, 180]], { pane: "today", opacity: .7, interactive: false });
+function setTiles() {
+  [base, labels, hills].forEach(l => { if (l) map.removeLayer(l); });
+  const t = isDark() ? "Dark" : "Light";
+  const url = LY.base === "ocean" ? ESRI + "Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}" : LY.base === "satellite" ? ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}" : `${ESRI}Canvas/World_${t}_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+  base = L.tileLayer(url, { maxZoom: 16, maxNativeZoom: LY.base === "ocean" ? 10 : 16, attribution: ESRI_ATT }).addTo(map);
+  hills = L.tileLayer(ESRI + "Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, maxNativeZoom: 16, pane: "hills" });
+  labels = L.tileLayer(`${ESRI}Canvas/World_${t}_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, pane: "labels" });
+  applyLayers();
+}
+const voyLayer = L.layerGroup(), hlLayer = L.layerGroup(), arrowLayer = L.layerGroup(), beltLayer = L.layerGroup(), portLayer = L.layerGroup();
+function applyLayers() {
+  if (!base) return;
+  if (LY.hills) { hills.addTo(map); hills.setOpacity(Math.min(1, .15 + LY.hillK / 120)); } else map.removeLayer(hills);
+  if (LY.labels) { labels.addTo(map); labels.setOpacity(LY.labelK / 100); } else map.removeLayer(labels);
+  if (LY.today) { today.addTo(map); today.setOpacity(LY.todayK / 100); } else map.removeLayer(today);
+  [[LY.voy, voyLayer], [LY.arrows, arrowLayer], [LY.belts, beltLayer], [LY.ports, portLayer]].forEach(([on, l]) => on ? l.addTo(map) : map.removeLayer(l));
+  hlLayer.addTo(map);
+  drawArrows(); restyle(); legend();
+}
+(function layerControl() {
+  const Ctl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    d.innerHTML = `<button class="lyrBtn" aria-expanded="false">Map layers</button>
+<div class="lyrPanel" hidden>
+ <div class="row"><label style="font-weight:600">Base map</label><div class="sub"><select data-k="base" aria-label="Base map"><option value="plain">Plain grey</option><option value="ocean">Ocean floor</option><option value="satellite">Satellite</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="hills"> Hills and mountains</label><div class="sub"><span>strength</span><input type="range" data-k="hillK" min="10" max="100" step="5" aria-label="Hill shading strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="labels"> Place names and borders</label><div class="sub"><span>strength</span><input type="range" data-k="labelK" min="20" max="100" step="5" aria-label="Place name strength"></div></div>
+ <div class="hd">The logbooks</div>
+ <div class="row"><label><input type="checkbox" data-k="voy"> Voyage lines</label><div class="sub"><span>strength</span><input type="range" data-k="alpha" min="10" max="100" step="5" aria-label="Line strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="arrows"> Logbook winds</label><div class="sub"><span>season</span><select data-k="season" aria-label="Season"><option value="all">All year</option><option value="djf">December to February</option><option value="jja">June to August</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="belts"> Oceans and wind belts</label></div>
+ <div class="row"><label><input type="checkbox" data-k="ports"> Ports used for routes</label></div>
+ <div class="hd">Today</div>
+ <div class="row"><label><input type="checkbox" data-k="today"> Shipping today (AIS, 2° squares)</label><div class="sub"><span>strength</span><input type="range" data-k="todayK" min="20" max="100" step="5" aria-label="Today's shipping strength"></div></div>
+ <button class="reset">Reset layers</button>
+</div>`;
+    return d; } });
+  map.addControl(new Ctl());
+  const box = map.getContainer(), btn = box.querySelector(".lyrBtn"), pan = box.querySelector(".lyrPanel");
+  btn.onclick = () => { const o = pan.hidden; pan.hidden = !o; btn.setAttribute("aria-expanded", o); };
+  const sync = () => pan.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (i.type === "checkbox") i.checked = LY[k]; else i.value = LY[k]; });
+  pan.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "range" ? "input" : "change", () => {
+    const k = i.dataset.k; LY[k] = i.type === "checkbox" ? i.checked : (k === "base" || k === "season" ? i.value : +i.value);
+    if (k === "hillK") LY.hills = true; if (k === "labelK") LY.labels = true; if (k === "alpha") LY.voy = true; if (k === "season") LY.arrows = true; if (k === "todayK") LY.today = true;
+    sync(); saveLY(); if (k === "base") setTiles(); else applyLayers();
+  }));
+  pan.querySelector(".reset").onclick = () => { Object.assign(LY, LYDEF); saveLY(); sync(); setTiles(); };
+  window.syncLayers = sync;
+  sync();
+})();
+const Note = L.Control.extend({ options: { position: "topleft" }, onAdd() { const d = L.DomUtil.create("div", "mapnote"); d.id = "mapnote"; L.DomEvent.disableClickPropagation(d); return d; } });
+map.addControl(new Note());
+L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
+
+/* ---------- static labels: oceans and wind belts, all placed on open sea ---------- */
+const SEAS = [["Atlantic Ocean", 32, -45], ["Atlantic Ocean", -32, -22], ["Indian Ocean", -12, 75], ["Pacific Ocean", 10, -140], ["Pacific Ocean", 5, 160], ["Southern Ocean", -60, 40]];
+const BELTS = [["North-east trades", "easterly, steady", 17, -48], ["South-east trades", "easterly, steady", -14, -20], ["Doldrums", "calms and squalls", 3.5, -30],
+  ["Westerlies", "the road home", 45, -30], ["Roaring forties", "westerly gales", -44, 70], ["Horse latitudes", "light, variable", 31, -55], ["South-east trades", "", -20, 85], ["Monsoons", "north-east in winter, south-west in summer", 12, 66]];
+SEAS.forEach(([n, la, lo]) => L.marker([la, lo], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "seaL", html: esc(n), iconSize: [180, 16], iconAnchor: [90, 8] }) }).addTo(beltLayer));
+BELTS.forEach(([n, s, la, lo]) => L.marker([la, lo], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "beltL", html: esc(n) + (s ? `<small>${esc(s)}</small>` : ""), iconSize: [170, 28], iconAnchor: [85, 14] }) }).addTo(beltLayer));
+Object.entries(SITE.ports).forEach(([k, [nm, kind, g]]) => { if (k === "sunda") return; const ll = kind === "box" ? [(g[1] + g[3]) / 2, (g[0] + g[2]) / 2] : [g[1], g[0]];
+  L.marker(ll, { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "portL", html: `<i></i>${esc(nm.split(" (")[0])}`, iconSize: null, iconAnchor: [4, 5] }) }).addTo(portLayer); });
+
+/* ---------- state ---------- */
+const S = { dec: -1, nats: new Set(NAT.map((_, i) => i)), grp: "all", track: null, pass: null, focus: null, port: null };
+let V = null, PL = [], arrowsData = null;
+const side = document.getElementById("side");
+function passOk(p) { const t = V.t[p[0]]; return S.nats.has(t[1]) && (S.grp === "all" || GRP[t[2]][0] === S.grp) && (S.dec < 0 || p[4] === S.dec); }
+function decode(d) { const out = []; let x = 0, y = 0; for (let i = 0; i < d.length; i += 2) { x += d[i]; y += d[i + 1]; out.push([y / 10, x / 10]); } return out; }
+function build() {
+  voyLayer.clearLayers(); PL = [];
+  const order = V.p.map((_, i) => i).sort((a, b) => ((a * 2654435761) % 4093) - ((b * 2654435761) % 4093));      // fixed shuffle so no nation hides the others
+  order.forEach(i => { const p = V.p[i]; const ll = p._ll || (p._ll = decode(p[7]));
+    const pl = L.polyline(ll, { renderer: vCanvas, weight: 1, opacity: .4, color: natCol(V.t[p[0]][1]), interactive: true });
+    pl._i = i; pl.on("click", e => { L.DomEvent.stopPropagation(e); pickPassage(i); }); PL.push(pl); });
+  restyle();
+}
+function restyle() {
+  if (!V) return;
+  const a = LY.alpha / 100, dim = S.track != null || S.port != null;
+  voyLayer.clearLayers();
+  PL.forEach(pl => { const p = V.p[pl._i]; if (!passOk(p)) return; const i = V.t[p[0]][1];
+    pl.setStyle({ color: natCol(i), opacity: dim ? a * .35 : a, weight: map.getZoom() >= 4 ? 1.4 : 1 }); voyLayer.addLayer(pl); });
+  hlLayer.clearLayers();
+  const hl = [];
+  if (S.track != null) V.p.forEach((p, i) => { if (p[0] === S.track) hl.push(i); });
+  if (S.port != null) V.p.forEach((p, i) => { if (passOk(p) && (p[5] === S.port || p[6] === S.port)) hl.push(i); });
+  hl.forEach(i => { const p = V.p[i]; const ll = p._ll || (p._ll = decode(p[7]));
+    L.polyline(ll, { renderer: hCanvas, weight: 5, opacity: .9, color: isDark() ? "#141922" : "#fff" }).addTo(hlLayer);
+    const pl = L.polyline(ll, { renderer: hCanvas, weight: i === S.pass ? 3.2 : 2.2, opacity: 1, color: natCol(V.t[p[0]][1]) }); pl.on("click", e => { L.DomEvent.stopPropagation(e); pickPassage(i); }); pl.addTo(hlLayer); });
+  summary();
+}
+function counts() { const c = { n: 0, ships: new Set(), days: 0, by: NAT.map(() => 0) }; V.p.forEach(p => { if (!passOk(p)) return; c.n++; c.ships.add(p[0]); c.days += p[7].length / 2; c.by[V.t[p[0]][1]]++; }); return c; }
+function summary() {
+  if (!V || S.track != null || S.port != null) return;
+  const c = counts();
+  const filt = [S.dec < 0 ? "All years" : decLabel(S.dec), S.grp === "all" ? null : GRP.find(g => g[0] === S.grp)[1], S.nats.size < NAT.length ? [...S.nats].map(i => NAT[i].s).join(", ") : null].filter(Boolean).join(" · ");
+  side.innerHTML = `<h4>Showing</h4><div class="big">${fmt(c.n)} passages</div><p class="sub">${esc(filt)}: ${fmt(c.ships.size)} logbook records, ${fmt(c.days)} daily positions.</p>
+<table>${NAT.map((n, i) => `<tr><td><span class="sw" style="background:${natCol(i)}"></span>${esc(n.l)}</td><td class="num">${fmt(c.by[i])}</td></tr>`).join("")}</table>
+<h4>Try</h4><p>Click any line to see the ship and its logbook. Press <b>Play</b> to watch the decades go by. Open <b>Map layers</b> for the winds by season, today's shipping and place names.</p>
+<p class="sub">The record is uneven: Spanish logbooks are mostly from 1760 to 1799, Dutch ones mostly from after 1820, and British ones stop in the 1820s. See section 07.</p>`;
+}
+function pickPassage(i, fly) {
+  const p = V.p[i], t = V.t[p[0]]; S.track = p[0]; S.pass = i; S.port = null; restyle();
+  const mine = V.p.map((q, j) => [q, j]).filter(([q]) => q[0] === p[0]);
+  const days = mine.reduce((s, [q]) => s + q[7].length / 2, 0);
+  side.innerHTML = `<button class="back" id="bk">Back to all voyages</button><h4>${esc(NAT[t[1]].l.split(" (")[0])} · ${esc(GRP[t[2]][1])}</h4><div class="big" style="color:${natCol(t[1])}">${esc(t[0])}</div>
+<p class="sub">${esc([t[4], t[3]].filter(Boolean).join(", ") || "Ship type and company not recorded")}</p>
+<h4>This passage</h4><table><tr><td>From</td><td>${dstr(p[1])}${p[5] ? `<br><small>${esc(p[5])}</small>` : ""}</td></tr><tr><td>To</td><td>${p[6] ? `<small>${esc(p[6])}</small><br>` : ""}${p[2]} days later</td></tr>
+<tr><td>Positions</td><td class="num">${fmt(p[7].length / 2)}</td></tr><tr><td>Distance</td><td class="num">${fmt(p[3])} km<br><small>noon to noon, straight lines</small></td></tr></table>
+<h4>The whole logbook record</h4><table><tr><td>Passages</td><td class="num">${mine.length}</td></tr><tr><td>Daily positions</td><td class="num">${fmt(days)}</td></tr>
+${t[7] || t[8] ? `<tr><td>Logged as</td><td>${esc(t[7] || "?")} to ${esc(t[8] || "?")}</td></tr>` : ""}<tr><td>Archive</td><td>${esc(t[5] || "Not recorded")}</td></tr><tr><td>CLIWOC ID</td><td><small>${esc(t[6])}</small></td></tr></table>
+${mine.length > 1 ? `<h4>Passages in this record</h4><ol>${mine.slice(0, 30).map(([q, j]) => `<li><span class="go" data-p="${j}">${dstr(q[1])}</span> <small>${q[2]} days</small></li>`).join("")}</ol>` : ""}`;
+  side.querySelector("#bk").onclick = clearSel;
+  side.querySelectorAll("[data-p]").forEach(a => a.onclick = () => pickPassage(+a.dataset.p, true));
+  if (fly) { const b = L.latLngBounds(mine.flatMap(([q]) => q._ll || (q._ll = decode(q[7])))); map.fitBounds(b, { padding: [20, 20], maxZoom: 5 }); }
+  if (small()) side.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function pickPort(name) {
+  S.port = name; S.track = null; S.pass = null; restyle();
+  const hit = V.p.filter(p => passOk(p) && (p[5] === name || p[6] === name));
+  const by = NAT.map(() => 0); hit.forEach(p => by[V.t[p[0]][1]]++);
+  side.innerHTML = `<button class="back" id="bk">Back to all voyages</button><h4>Port or anchorage</h4><div class="big">${esc(name)}</div><p class="sub">${fmt(hit.length)} passages in the current selection start or end here.</p>
+<table>${NAT.map((n, i) => by[i] ? `<tr><td><span class="sw" style="background:${natCol(i)}"></span>${esc(n.s)}</td><td class="num">${fmt(by[i])}</td></tr>` : "").join("")}</table>`;
+  side.querySelector("#bk").onclick = clearSel;
+  const pk = Object.values(SITE.ports).find(v => v[0] === name);
+  if (pk) { const g = pk[2]; map.setView(pk[1] === "box" ? [(g[1] + g[3]) / 2, (g[0] + g[2]) / 2] : [g[1], g[0]], 4); }
+}
+function clearSel() { S.track = null; S.pass = null; S.port = null; restyle(); }
+map.on("click", () => { if (S.track != null || S.port != null) clearSel(); });
+map.on("zoomend", () => { drawArrows(); restyle(); });
+
+/* ---------- wind arrows ---------- */
+function forceCol(f) { if (f == null) return isDark() ? "#cfd6de" : "#3b4a5a"; const t = Math.max(0, Math.min(1, (f - 3) / 7)); const A = isDark() ? [190, 215, 235] : [70, 120, 160], B = isDark() ? [255, 170, 120] : [120, 20, 30]; return `rgb(${A.map((a, i) => Math.round(a + (B[i] - a) * t)).join(",")})`; }
+function drawArrows() {
+  arrowLayer.clearLayers(); if (!arrowsData || !LY.arrows) return;
+  const z = map.getZoom(), cellPx = 5 * 256 * Math.pow(2, z) / 360, thin = cellPx < 24, maxL = Math.min(46, cellPx * (thin ? 1.6 : .9));
+  if (cellPx < 6) return;
+  arrowsData[LY.season].forEach(([lo, la, frm, st, n, f]) => {
+    if (thin && (Math.round((lo + 177.5) / 5) % 2 || Math.round((la + 87.5) / 5) % 2)) return;      // world view: every other square
+    const L_ = Math.max(4, maxL * st), r = (frm + 180) * Math.PI / 180, dx = Math.sin(r) * L_ / 2, dy = -Math.cos(r) * L_ / 2;
+    const h = Math.min(6, 2 + L_ * .18), a1 = r + Math.PI - .5, a2 = r + Math.PI + .5;
+    const hx1 = dx + Math.sin(a1) * h, hy1 = dy - Math.cos(a1) * h, hx2 = dx + Math.sin(a2) * h, hy2 = dy - Math.cos(a2) * h;
+    const c = forceCol(f), halo = isDark() ? "#141922" : "#fff";
+    const svg = `<svg width="2" height="2" viewBox="-1 -1 2 2"><g stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M${-dx} ${-dy}L${dx} ${dy}M${hx1} ${hy1}L${dx} ${dy}L${hx2} ${hy2}" stroke="${halo}" stroke-width="3.6" opacity=".85"/><path d="M${-dx} ${-dy}L${dx} ${dy}M${hx1} ${hy1}L${dx} ${dy}L${hx2} ${hy2}" stroke="${c}" stroke-width="1.7"/></g></svg>`;
+    const m = L.marker([la, lo], { pane: "arrows", keyboard: false, icon: L.divIcon({ className: "arrow", html: svg, iconSize: [2, 2], iconAnchor: [1, 1] }) });
+    const comp = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"][Math.round(frm / 22.5) % 16];
+    m.bindTooltip(`<b>Logbook wind, ${lats(la)}, ${lonw(lo)}</b><br>From the ${comp} (${Math.round(frm)}°), steadiness ${st.toFixed(2)}<br>${f != null ? `Mean force ${f.toFixed(1)} m/s<br>` : ""}${fmt(n)} daily entries`, { direction: "top" });
+    m.addTo(arrowLayer); });
+}
+
+/* ---------- legend ---------- */
+function legend() {
+  const lg = document.getElementById("legend");
+  lg.innerHTML = NAT.map((n, i) => `<span><i style="background:${natCol(i)}"></i>${esc(n.l)}</span>`).join("") +
+    (LY.arrows ? `<span><i class="ar"><svg width="26" height="10" viewBox="0 0 26 10"><path d="M2 5H23M18 1.5L23 5L18 8.5" stroke="${forceCol(4)}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></i>light wind</span><span><i class="ar"><svg width="26" height="10" viewBox="0 0 26 10"><path d="M2 5H23M18 1.5L23 5L18 8.5" stroke="${forceCol(10)}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></i>strong wind (arrow length: steadiness)</span>` : "") +
+    (LY.today ? `<span><i style="background:linear-gradient(90deg,#cddce2,#14224a)"></i>shipping today, light to heavy</span>` : "");
+}
+
+/* ---------- controls ---------- */
+const decIn = document.getElementById("dec"), decOut = document.getElementById("decOut");
+decIn.max = DEC.length;
+decIn.oninput = () => { S.dec = +decIn.value - 1; decOut.textContent = decLabel(S.dec); clearSelSoft(); restyle(); };
+function clearSelSoft() { S.track = null; S.pass = null; S.port = null; }
+let timer = null; const play = document.getElementById("play");
+play.onclick = () => { if (timer) { clearInterval(timer); timer = null; play.setAttribute("aria-pressed", "false"); play.textContent = "Play"; return; }
+  play.setAttribute("aria-pressed", "true"); play.textContent = "Pause"; let v = Math.max(2, +decIn.value);
+  const step = () => { decIn.value = v; decIn.oninput(); v++; if (v > DEC.length) { clearInterval(timer); timer = null; play.setAttribute("aria-pressed", "false"); play.textContent = "Play"; } };
+  step(); timer = setInterval(step, 1400); };
+const natRow = document.getElementById("natRow");
+NAT.forEach((n, i) => { const b = document.createElement("button"); b.className = "btn nat"; b.setAttribute("aria-pressed", "true"); b.innerHTML = `<span class="dot" style="background:${n.c}"></span>${esc(n.s)}`;
+  b.onclick = () => { if (S.nats.has(i)) S.nats.delete(i); else S.nats.add(i); if (!S.nats.size) S.nats.add(i); syncNat(); clearSelSoft(); restyle(); }; natRow.appendChild(b); });
+function syncNat() { natRow.querySelectorAll(".btn").forEach((b, i) => b.setAttribute("aria-pressed", S.nats.has(i))); }
+const grpRow = document.getElementById("grpRow");
+[["all", "All"], ...GRP].forEach(([k, l]) => { const b = document.createElement("button"); b.className = "btn"; b.dataset.g = k; b.textContent = l; b.setAttribute("aria-pressed", k === "all");
+  b.onclick = () => { S.grp = k; syncGrp(); clearSelSoft(); restyle(); }; grpRow.appendChild(b); });
+function syncGrp() { grpRow.querySelectorAll(".btn").forEach(b => b.setAttribute("aria-pressed", b.dataset.g === S.grp)); }
+function setNats(list) { S.nats = new Set(list); syncNat(); }
+function resetFilters() { S.dec = -1; decIn.value = 0; decOut.textContent = decLabel(-1); setNats(NAT.map((_, i) => i)); S.grp = "all"; syncGrp(); clearSelSoft(); }
+const FOCUS = {
+  all: ["Everything", () => { resetFilters(); map.setView([8, 10], small() ? 1 : 2); }],
+  volta: ["The volta do mar", () => { resetFilters(); map.setView([18, -25], small() ? 2 : 3); note("Outbound ships hug Africa; homebound ones swing west towards the Azores before turning for Europe."); }],
+  brouwer: ["The Brouwer route", () => { resetFilters(); setNats([1]); map.setView([-22, 62], small() ? 2 : 3); note("Dutch ships run east from the Cape near 40° S, then turn north for the Sunda Strait and Batavia."); }],
+  correos: ["Spanish mail packets", () => { resetFilters(); setNats([2]); S.grp = "correo"; syncGrp(); map.setView([12, -40], small() ? 2 : 3); note("The correos marítimos from La Coruña to Puerto Rico, Havana and the River Plate."); }],
+  eic: ["East India companies", () => { resetFilters(); S.grp = "eic"; syncGrp(); map.setView([-5, 30], small() ? 1 : 2); note("English, Dutch, Swedish and Danish East India company ships."); }],
+  windsDJF: ["Winds, Dec to Feb", () => { LY.arrows = true; LY.season = "djf"; saveLY(); window.syncLayers(); applyLayers(); map.setView([5, 60], small() ? 2 : 3); note("December to February: the north-east monsoon over the Arabian Sea and Bay of Bengal."); }],
+  windsJJA: ["Winds, Jun to Aug", () => { LY.arrows = true; LY.season = "jja"; saveLY(); window.syncLayers(); applyLayers(); map.setView([5, 60], small() ? 2 : 3); note("June to August: the south-west monsoon, the same seas with the wind turned round."); }],
+  endeavour: ["Cook's Endeavour", () => { resetFilters(); pickPassage(V.p.findIndex(p => p[0] === SITE.famous.endeavour), true); }],
+  resolution: ["Cook's Resolution", () => { resetFilters(); pickPassage(V.p.findIndex(p => p[0] === SITE.famous.resolution), true); }],
+  boussole: ["La Pérouse's Boussole", () => { resetFilters(); pickPassage(V.p.findIndex(p => p[0] === SITE.famous.boussole), true); }],
+};
+function note(s) { const n = document.getElementById("mapnote"); n.textContent = s || ""; clearTimeout(note._t); if (s) note._t = setTimeout(() => n.textContent = "", 9000); }
+const focusRow = document.getElementById("focusRow");
+Object.entries(FOCUS).forEach(([k, [l, f]]) => { const b = document.createElement("button"); b.className = "btn"; b.textContent = l; b.onclick = () => { if (!V) return; f(); restyle(); }; focusRow.appendChild(b); });
+document.querySelectorAll("[data-focus]").forEach(a => a.addEventListener("click", e => { const f = FOCUS[a.dataset.focus]; if (f && V) setTimeout(() => { f[1](); restyle(); }, 350); }));
+
+/* search: ships and ports */
+const q = document.getElementById("q"), sug = document.getElementById("sug");
+let SEARCH = [];
+function buildSearch() {
+  const ships = {}; V.t.forEach((t, i) => { const k = t[0]; (ships[k] = ships[k] || []).push(i); });
+  SEARCH = Object.entries(ships).map(([nm, ids]) => ({ kind: "ship", name: nm, ids })).concat(Object.values(SITE.ports).filter(v => v[0] !== "Sunda Strait").map(v => ({ kind: "port", name: v[0] })));
+}
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+q.addEventListener("input", () => {
+  const s = norm(q.value.trim()); if (s.length < 2 || !V) { sug.style.display = "none"; return; }
+  const hits = SEARCH.filter(h => norm(h.name).includes(s)).sort((a, b) => (norm(a.name).startsWith(s) ? 0 : 1) - (norm(b.name).startsWith(s) ? 0 : 1)).slice(0, 12);
+  sug.innerHTML = hits.map((h, i) => { if (h.kind === "port") return `<li data-i="${i}">${esc(h.name)} <span>port</span></li>`;
+    const t = V.t[h.ids[0]]; const yrs = h.ids.map(id => (V.p.find(p => p[0] === id) || [0, "?"])[1].slice(0, 4)).filter(y => y !== "?").sort();
+    return `<li data-i="${i}">${esc(h.name)} <span>${esc(NAT[t[1]].s)}${yrs.length ? ", " + yrs[0] + (yrs.length > 1 && yrs[yrs.length - 1] !== yrs[0] ? " to " + yrs[yrs.length - 1] : "") : ""}${h.ids.length > 1 ? ", " + h.ids.length + " records" : ""}</span></li>`; }).join("");
+  sug.style.display = hits.length ? "block" : "none";
+  sug.querySelectorAll("li").forEach(li => li.onclick = () => { const h = hits[+li.dataset.i]; sug.style.display = "none"; q.value = h.name; resetFilters();
+    if (h.kind === "port") pickPort(h.name); else { const j = V.p.findIndex(p => p[0] === h.ids[0]); if (j >= 0) pickPassage(j, true); } });
+});
+q.addEventListener("keydown", e => { if (e.key === "Enter") { const li = sug.querySelector("li"); if (li) li.click(); } if (e.key === "Escape") sug.style.display = "none"; });
+document.addEventListener("click", e => { if (!e.target.closest(".searchbox")) sug.style.display = "none"; });
+
+/* ---------- load ---------- */
+side.innerHTML = `<h4>Loading</h4><p>Loading 6,524 passages...</p>`;
+Promise.all([fetch("data/voyages.json").then(r => r.json()), fetch("data/wind_arrows.json").then(r => r.json())]).then(([v, a]) => {
+  V = v; arrowsData = a; buildSearch(); build(); setTiles(); window.READY = true;
+}).catch(e => { side.innerHTML = `<p>Could not load the voyage data (${esc(e.message)}).</p>`; });
+setTiles();
+
+/* ---------- charts ---------- */
+const PAL = { out: "#C2272D", home: "#24557F" };
+function histChart(box, series, lo, step, xfmt, w, sm, xlab) {
+  const H = sm ? 220 : 250, m = { l: 40, r: 10, t: 14, b: 40 };
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, box);
+  const nb = series[0].h.length, max = Math.max(...series.flatMap(s => s.h));
+  const st0 = max > 300 ? 100 : max > 120 ? 50 : max > 50 ? 20 : 10, top = Math.ceil(max / st0) * st0;
+  const bw = (w - m.l - m.r) / nb, y = v => H - m.b - (H - m.t - m.b) * v / top;
+  Array.from({ length: top / st0 + 1 }, (_, i) => i * st0).forEach(v => { el("line", { x1: m.l, x2: w - m.r, y1: y(v), y2: y(v), stroke: css("--rule") }, svg); lbl(svg, m.l - 6, y(v) + 4, v, "lab s m", "end"); });
+  series.forEach((s, si) => s.h.forEach((v, i) => { if (!v) return; const x = m.l + i * bw + (series.length > 1 ? si * bw / 2 : 0) + 1, ww = bw / series.length - 2;
+    const r = el("rect", { x, y: y(v), width: Math.max(1, ww), height: H - m.b - y(v), fill: s.c, rx: 1 }, svg);
+    r.addEventListener("mousemove", e => showTip(`<b>${esc(s.name)}</b><br>${xfmt(lo + i * step)} to ${xfmt(lo + (i + 1) * step)}: ${v} crossings`, e.pageX - scrollX, e.pageY - scrollY));
+    r.addEventListener("mouseleave", hideTip); }));
+  const every = Math.max(1, Math.ceil(nb / (sm ? 5 : 10)));
+  for (let i = 0; i <= nb; i++) { const x = m.l + i * bw; el("line", { x1: x, x2: x, y1: H - m.b, y2: H - m.b + 4, stroke: css("--muted") }, svg); if (i % every === 0) lbl(svg, x, H - m.b + 16, xfmt(lo + i * step), "lab s m", "middle"); }
+  lbl(svg, m.l, H - 6, xlab, "lab s m");
+  let lx = w - m.r; series.slice().reverse().forEach(s => { const t = lbl(svg, lx, m.t + 2, s.name, "lab s", "end"); const bb = t.getComputedTextLength(); el("rect", { x: lx - bb - 16, y: m.t - 7, width: 10, height: 10, fill: s.c }, svg); lx -= bb + 30; });
+}
+resp(document.getElementById("voltaChart"), (w, sm) => { const H = R.hist;
+  histChart(document.getElementById("voltaChart"), [{ name: `Outbound (${H.lat30_out.total})`, h: H.lat30_out.n, c: PAL.out }, { name: `Homebound (${H.lat30_home.total})`, h: H.lat30_home.n, c: PAL.home }], H.lat30_out.lo, H.lat30_out.step, v => v === 0 ? "0°" : lonw(v), w, sm, "Longitude where the track crossed 30° N"); });
+resp(document.getElementById("brouwerChart"), (w, sm) => { const H = R.hist;
+  histChart(document.getElementById("brouwerChart"), [{ name: `Dutch (${H.lon75_dutch.total})`, h: H.lon75_dutch.n, c: NAT[1].c }, { name: `British (${H.lon75_british.total})`, h: H.lon75_british.n, c: NAT[0].c }], H.lon75_dutch.lo, H.lon75_dutch.step, v => v === 0 ? "0°" : lats(v), w, sm, "Latitude where eastbound tracks crossed 75° E"); });
+
+const DROUTES = [["nl_batavia", 1], ["batavia_nl", 1], ["nl_cape", 1], ["cape_batavia", 1], ["nl_suriname", 1], ["channel_india", 0], ["channel_caribbean", 0], ["spain_puertorico", 2], ["havana_spain", 2], ["spain_plate", 2], ["plate_spain", 2]];
+resp(document.getElementById("durChart"), (w, sm) => {
+  const rows = DROUTES.filter(([k]) => R.dur[k] && R.dur[k].n >= 5);
+  sm = true; const rh = 30, m = { l: 10, r: 16, t: 10, b: 34 }, H = m.t + m.b + rows.length * rh * 1.6;
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, document.getElementById("durChart"));
+  const max = 260, x = v => m.l + (w - m.l - m.r) * Math.min(v, max) / max;
+  [0, 50, 100, 150, 200, 250].forEach(v => { el("line", { x1: x(v), x2: x(v), y1: m.t, y2: H - m.b, stroke: css("--rule") }, svg); lbl(svg, x(v), H - m.b + 16, v, "lab s m", "middle"); });
+  lbl(svg, w - m.r, H - 6, "days", "lab s m", "end");
+  rows.forEach(([k, ni], i) => { const d = R.dur[k], yy = m.t + (i + .5) * rh * (sm ? 1.6 : 1) + (sm ? 8 : 0), c = NAT[ni].c;
+    const name = `${d.label} (${d.n})`;
+    if (sm) lbl(svg, m.l, yy - 12, name, "lab s"); else lbl(svg, m.l - 10, yy + 4, name, "lab s", "end");
+    el("line", { x1: x(d.min), x2: x(d.max), y1: yy, y2: yy, stroke: c, "stroke-width": 1.2, opacity: .7 }, svg);
+    if (d.max > max) lbl(svg, x(max) - 2, yy - 5, `to ${Math.round(d.max)}`, "lab s m", "end");
+    el("rect", { x: x(d.q1), y: yy - 6, width: Math.max(2, x(d.q3) - x(d.q1)), height: 12, fill: c, opacity: .35, rx: 2 }, svg);
+    const dot = el("circle", { cx: x(d.median), cy: yy, r: 5.5, fill: c, stroke: css("--card"), "stroke-width": 1.5 }, svg);
+    lbl(svg, x(d.median) + 9, yy + 4, Math.round(d.median), "lab s b");
+    dot.addEventListener("mousemove", e => showTip(`<b>${esc(d.label)}</b><br>${d.n} voyages, median ${Math.round(d.median)} days<br>middle half ${Math.round(d.q1)} to ${Math.round(d.q3)}; fastest ${Math.round(d.min)}<br>fastest ship: ${esc(d.fastest.ship)} (${d.fastest.year})`, e.pageX - scrollX, e.pageY - scrollY));
+    dot.addEventListener("mouseleave", hideTip); });
+});
+
+resp(document.getElementById("beltChart"), (w, sm) => {
+  const B = R.wind.belts.atlantic.slice().sort((a, b) => a.lat0 - b.lat0);
+  const H = sm ? 300 : 320, m = { l: 46, r: 16, t: 26, b: 40 };
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, document.getElementById("beltChart"));
+  const x = la => m.l + (w - m.l - m.r) * (la + 60) / 125, y = u => m.t + (H - m.t - m.b) * (1 - (u + 1) / 2);
+  [-1, -.5, 0, .5, 1].forEach(v => { el("line", { x1: m.l, x2: w - m.r, y1: y(v), y2: y(v), stroke: v === 0 ? css("--muted") : css("--rule") }, svg); lbl(svg, m.l - 6, y(v) + 4, v.toFixed(1), "lab s m", "end"); });
+  [-60, -40, -20, 0, 20, 40, 60].forEach(la => { lbl(svg, x(la), H - m.b + 16, la === 0 ? "0°" : lats(la), "lab s m", "middle"); });
+  lbl(svg, m.l + 4, y(1) - 8, "from the west", "lab s m"); lbl(svg, w - m.r - 4, y(-1) - 6, "from the east", "lab s m", "end");
+  const line = (key, c, dash, name) => { const pts = B.map(b => [x((b.lat0 + b.lat1) / 2), y(b[key])]);
+    el("path", { d: "M" + pts.map(p => p.join(" ")).join("L"), fill: "none", stroke: c, "stroke-width": 2.6, "stroke-dasharray": dash || "" }, svg);
+    pts.forEach((p, i) => { const c2 = el("circle", { cx: p[0], cy: p[1], r: dash ? 0 : 3.6, fill: c }, svg);
+      if (!dash) { c2.addEventListener("mousemove", e => showTip(`<b>${B[i].lat0 < 0 ? lats(B[i].lat1) + " to " + lats(B[i].lat0) : lats(B[i].lat0) + " to " + lats(B[i].lat1)}</b><br>${fmt(B[i].n)} logbook winds, ${Math.round(B[i].east_share * 100)}% from an easterly point<br>Logbook mean ${B[i].u.toFixed(2)}, modern ${B[i].ncep_unit_u.toFixed(2)}<br>Calm or variable: ${(B[i].calm_var * 100).toFixed(1)}%`, e.pageX - scrollX, e.pageY - scrollY)); c2.addEventListener("mouseleave", hideTip); } }); };
+  line("ncep_unit_u", css("--muted"), "5 4"); line("u", css("--cool"));
+  const lg = [[css("--cool"), "", "Logbooks"], [css("--muted"), "5 4", "Modern reanalysis"]]; let lx = w - m.r;
+  lg.reverse().forEach(([c, d, n]) => { const t = lbl(svg, lx, 12, n, "lab s", "end"); const bb = t.getComputedTextLength(); el("line", { x1: lx - bb - 30, x2: lx - bb - 6, y1: 8, y2: 8, stroke: c, "stroke-width": 2.6, "stroke-dasharray": d }, svg); lx -= bb + 44; });
+  [["NE trades", 17], ["SE trades", -15], ["Westerlies", 45], ["Westerlies", -45]].forEach(([n, la]) => lbl(svg, x(la), la > 30 || la < -30 ? y(.62) : y(-.97) + 0, n, "lab s b", "middle"));
+});
+
+function routeTable() {
+  const box = document.getElementById("routeTable");
+  const rows = NAT.slice(0, 4).map((n, i) => [n, R.routes_by_nation[n.k].slice(0, 4)]);
+  box.innerHTML = `<div class="tablewrap"><table class="t"><thead><tr><th>Nation</th><th>Route</th><th class="num">Legs</th></tr></thead><tbody>${rows.map(([n, rr]) => rr.map((r, j) => `<tr>${j === 0 ? `<td rowspan="${rr.length}"><span class="sw" style="background:${n.c}"></span>${esc(n.s)}</td>` : ""}<td><span class="go" data-port="${esc(r.b_label)}" data-port2="${esc(r.a_label)}">${esc(r.a_label.split(" (")[0])} and ${esc(r.b_label.split(" (")[0])}</span></td><td class="num">${r.n}</td></tr>`).join("")).join("")}</tbody></table></div>`;
+  box.querySelectorAll("[data-port]").forEach(a => a.onclick = () => { if (!V) return; document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); resetFilters(); const p = a.dataset.port.startsWith("Home waters") ? a.dataset.port2 : a.dataset.port; setTimeout(() => pickPort(p), 300); });
+}
+routeTable();
+
+resp(document.getElementById("covChart"), (w, sm) => {
+  const C = R.coverage, H = sm ? 260 : 300, m = { l: 52, r: 10, t: 30, b: 36 };
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, document.getElementById("covChart"));
+  const max = Math.ceil(Math.max(...C.map(c => c.total_obs)) / 10000) * 10000, bw = (w - m.l - m.r) / C.length, y = v => H - m.b - (H - m.t - m.b) * v / max;
+  for (let v = 0; v <= max; v += 10000) { el("line", { x1: m.l, x2: w - m.r, y1: y(v), y2: y(v), stroke: css("--rule") }, svg); lbl(svg, m.l - 6, y(v) + 4, v ? (v / 1000) + "k" : "0", "lab s m", "end"); }
+  C.forEach((c, i) => { let acc = 0; NAT.forEach((n, j) => { const v = c.obs[n.k]; if (!v) return; const r = el("rect", { x: m.l + i * bw + 3, y: y(acc + v), width: bw - 6, height: y(acc) - y(acc + v), fill: n.c }, svg); acc += v;
+      r.addEventListener("mousemove", e => showTip(`<b>${c.decade}s, ${esc(n.s)}</b><br>${fmt(v)} daily positions<br>${fmt(c.passages[n.k])} passages`, e.pageX - scrollX, e.pageY - scrollY)); r.addEventListener("mouseleave", hideTip); });
+    lbl(svg, m.l + (i + .5) * bw, H - m.b + 16, sm ? "'" + String(c.decade).slice(2) : c.decade + "s", "lab s m", "middle"); });
+  let lx = m.l; NAT.forEach(n => { el("rect", { x: lx, y: 6, width: 10, height: 10, fill: n.c }, svg); const t = lbl(svg, lx + 14, 15, n.s, "lab s"); lx += t.getComputedTextLength() + 28; });
+});
+(function covTable() {
+  const t = document.getElementById("covTable"), C = R.coverage;
+  t.innerHTML = `<thead><tr><th>Passages</th>${C.map(c => `<th class="num">${String(c.decade).slice(0, 4)}s</th>`).join("")}</tr></thead><tbody>${NAT.map(n => `<tr><td><span class="sw" style="background:${n.c}"></span>${esc(n.s)}</td>${C.map(c => `<td class="num">${fmt(c.passages[n.k])}</td>`).join("")}</tr>`).join("")}<tr><td><b>All</b></td>${C.map(c => `<td class="num"><b>${fmt(c.total_passages)}</b></td>`).join("")}</tr></tbody>`;
+})();
+
+resp(document.getElementById("modChart"), (w, sm) => {
+  const K = ["south_atlantic_mid", "south_indian", "st_helena", "north_pacific", "red_sea", "malacca"], Rg = R.modern.region;
+  sm = true; const rh = 46, m = { l: 10, r: 60, t: 26, b: 10 }, H = m.t + m.b + K.length * rh;
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, document.getElementById("modChart"));
+  const max = Math.max(...K.flatMap(k => [Rg[k].sail_share, Rg[k].ais_share])), x = v => m.l + (w - m.l - m.r) * v / max;
+  [[PAL.out, "Logbooks, 1750 to 1850"], [css("--cool"), "Ships today"]].forEach(([c, n], i) => { el("rect", { x: m.l + i * 190, y: 6, width: 10, height: 10, fill: c }, svg); lbl(svg, m.l + i * 190 + 14, 15, n, "lab s"); });
+  K.forEach((k, i) => { const r = Rg[k], yy = m.t + i * rh + (sm ? 14 : 4);
+    if (sm) lbl(svg, m.l, yy - 2, r.label, "lab s"); else lbl(svg, m.l - 10, yy + 13, r.label, "lab s", "end");
+    [[r.sail_share, PAL.out], [r.ais_share, css("--cool")]].forEach(([v, c], j) => { el("rect", { x: m.l, y: yy + 2 + j * 11, width: Math.max(1, x(v) - m.l), height: 9, fill: c }, svg); lbl(svg, x(v) + 5, yy + 10 + j * 11, (v * 100).toFixed(v < .001 ? 2 : 1) + "%", "lab s m"); }); });
+});
+
+/* theme */
+document.getElementById("theme").onclick = () => { const r = document.documentElement; r.dataset.theme = isDark() ? "light" : "dark"; setTiles(); if (V) build(); legend(); redraws.forEach(f => f()); };
+</script>
+<!-- map-fullscreen v1 -->
+<style id="mfs-style">
+.mfs-btn{position:absolute;top:10px;right:10px;z-index:1001;width:34px;height:34px;border:2px solid rgba(0,0,0,.25);border-radius:4px;background:#fff;color:#222;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.mfs-btn:hover{background:#f2f2f2}
+.mfs-btn svg{width:18px;height:18px}
+.mfs-host.mfs-btn-left .mfs-btn{right:auto;left:54px}
+.mfs-fake{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;z-index:100000!important;border-radius:0!important}
+html.mfs-lock,html.mfs-lock body{overflow:hidden!important}
+:fullscreen.mfs-host{width:100vw!important;height:100vh!important;max-width:none!important;max-height:none!important;margin:0!important;border-radius:0!important}
+</style>
+<script id="mfs-script">
+(function(){
+  var ICON_OPEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  var ICON_CLOSE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+  function poke(){setTimeout(function(){window.dispatchEvent(new Event('resize'));},60);setTimeout(function(){window.dispatchEvent(new Event('resize'));},400);}
+  function realFS(){return document.fullscreenElement||document.webkitFullscreenElement;}
+  function add(el){
+    if(el.__mfs)return; el.__mfs=1;
+    var cs=getComputedStyle(el); if(cs.position==='static')el.style.position='relative';
+    el.classList.add('mfs-host');
+    // avoid clashing with a top-right Leaflet control (e.g. "Map layers")
+    var tr=el.querySelector('.leaflet-top.leaflet-right');
+    if(tr&&tr.children.length){ el.classList.add('mfs-btn-left'); }
+    var b=document.createElement('button'); b.type='button'; b.className='mfs-btn';
+    b.title='Full screen map'; b.setAttribute('aria-label','Full screen map'); b.innerHTML=ICON_OPEN;
+    ['click','dblclick','mousedown','touchstart','wheel'].forEach(function(t){b.addEventListener(t,function(e){e.stopPropagation();},{passive:t!=='click'});});
+    function setIcon(on){b.innerHTML=on?ICON_CLOSE:ICON_OPEN;b.title=on?'Exit full screen':'Full screen map';b.setAttribute('aria-label',b.title);}
+    function exitFake(){el.classList.remove('mfs-fake');document.documentElement.classList.remove('mfs-lock');setIcon(false);poke();}
+    b.addEventListener('click',function(e){
+      e.preventDefault();
+      if(el.classList.contains('mfs-fake')){exitFake();return;}
+      if(realFS()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return;}
+      var req=el.requestFullscreen||el.webkitRequestFullscreen;
+      if(req){ try{ var p=req.call(el); if(p&&p.catch)p.catch(function(){el.classList.add('mfs-fake');document.documentElement.classList.add('mfs-lock');setIcon(true);poke();}); }catch(err){el.classList.add('mfs-fake');document.documentElement.classList.add('mfs-lock');setIcon(true);poke();} }
+      else { el.classList.add('mfs-fake');document.documentElement.classList.add('mfs-lock');setIcon(true);poke(); }
+    });
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&el.classList.contains('mfs-fake'))exitFake();});
+    ['fullscreenchange','webkitfullscreenchange'].forEach(function(t){document.addEventListener(t,function(){setIcon(realFS()===el);poke();});});
+    el.appendChild(b);
+  }
+  function scan(){
+    var els=document.querySelectorAll('[data-fullscreen-map], .leaflet-container, .maplibregl-map, .mapboxgl-map');
+    els.forEach(function(el){
+      if(el.closest('.mfs-host')&&!el.classList.contains('mfs-host'))return;
+      var r=el.getBoundingClientRect(); if(r.width<200||r.height<150)return;
+      add(el);
+    });
+  }
+  function start(){scan(); var n=0; var t=setInterval(function(){scan(); if(++n>20)clearInterval(t);},500);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start); else start();
+})();
+</script>
+<!-- /map-fullscreen -->
+
+</body>
+</html>
