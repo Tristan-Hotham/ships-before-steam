@@ -1,0 +1,146 @@
+<!-- wp:paragraph -->
+<p><em>Before engines, a ship went where the wind let it. Officers wrote down their position and the wind every single day, and a European project typed up more than a quarter of a million of those entries. Drawn as lines, they show the hidden highways of the age of sail.</em></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://maps.tristanhotham.com/ships-before-steam/">Explore the interactive version</a></div>
+<!-- /wp:button -->
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://doi.org/10.5281/zenodo.23857610">Read the paper</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
+
+<!-- wp:paragraph -->
+<p>Every day at noon, on every ocean-going European ship of the eighteenth century, an officer opened the logbook and wrote down where the ship was, which way it was heading and how the wind blew. The wind mattered for navigation: it pushed the ship sideways off its course, and without satellites or reliable clocks the officers needed every clue to know where they were. Thousands of these logbooks survive in archives in London, The Hague, Seville, Madrid and Paris.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Between 2001 and 2003 a European project called CLIWOC, the Climatological Database for the World's Oceans, went through {{n_logbook_ids|int}} of them and typed up {{n_obs_raw|int}} daily entries, mainly so that climate scientists could see what the weather was like before thermometers went to sea. But the same entries also say exactly where the ships were. So I drew them: {{n_passages|int}} passages from {{n_tracks|int}} British, Dutch, Spanish and French logbook records, from {{year_min|raw}} to {{year_max|raw}}.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_world.png|World map of thousands of thin voyage lines coloured by nation: dense orange and red bundles run from the Channel down the Atlantic, curve round the Cape of Good Hope and sweep across the southern Indian Ocean to Java, with gold Spanish lines to the Caribbean and the River Plate, and only a few faint lines in the Pacific|Every passage in the CLIWOC logbooks, coloured by the ship's nation. Lines join daily noon positions.}}
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">Out by Africa, home by the Azores</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>The first thing the map shows is that ships did not come back the way they went. Going south from Europe, they ran down past Madeira and the Canaries, picked up the north-east trade winds and crossed the equator well out in the Atlantic, at a median of {{volta.0.out.median_lon|lonw}}. Coming home they could not sail into those same trades. Instead they swung west in a great arc, the Portuguese sailors' <em>volta do mar</em>, the "turn of the sea", until they found the westerlies near the Azores and ran home before them.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The logbooks measure it neatly. Ships sailing between Europe and the South Atlantic crossed 30° N at a median of {{volta.30.out.median_lon|lonw}} on the way out and {{volta.30.home.median_lon|lonw}} on the way home: {{volta_shift_30|deg}} further west, about {{volta_shift_30_km|int}} km at that latitude. At the latitude of the Azores, {{volta.azores38.home.share|pct}} of homebound ships passed within the islands' longitudes. Only {{volta.azores38.out.share|pct}} of outbound ships did.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_volta.png|Map of the Atlantic with outbound passages in red hugging the coast of Africa and homebound passages in blue swinging far west towards the Azores, crossing 30 degrees north at a median of 18 degrees west outbound and 36 degrees west homebound, with a bar chart of crossing longitudes|Out and home between Europe and the South Atlantic. Red: outbound. Blue: homebound.}}
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">The Dutch road through the roaring forties</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>In 1611 the Dutch captain Hendrik Brouwer tried something bold. Instead of creeping up the east coast of Africa from the Cape of Good Hope, against the monsoon, he sailed south-east into the strong westerly winds near 40° S, ran east for thousands of miles and only then turned north for Java. It cut months off the voyage, and the Dutch East India Company soon made his route compulsory.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Two centuries later the logbooks show Dutch ships still doing exactly that. Of {{brouwer.75.dutch.n|int}} Dutch crossings of 75° E heading east, the median was at {{brouwer.75.dutch.median_lat|lats}}, and {{brouwer.75.dutch.share_south30|pct}} were south of 30° S. The British used the same westerlies, but many were heading for India rather than Java and turned north sooner. The logbook winds in those latitudes blow from a westerly point {{wind.named.forties.share|pct}} of the time.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_brouwer.png|Map of the Indian Ocean with a thick orange band of Dutch passages running east from the Cape near 40 degrees south and curving north to Batavia, and thinner red British passages heading north towards India and Ceylon|The Brouwer route. Dutch passages (orange) and British ones (red); dots mark the median latitude where each crossed 75° E.}}
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">A hundred days to Batavia</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Because every entry is dated, voyage times fall out of the logs. I counted from the last day a ship was in home waters (the North Sea, the Channel and its approaches) to the first day it was off its destination. {{dur.nl_batavia.n|int}} voyages reached Batavia, the Dutch capital in Java, and the median took {{dur.nl_batavia.median|int}} days. The fastest, the {{dur.nl_batavia.fastest.ship|raw}} in {{dur.nl_batavia.fastest.year|raw}}, did it in {{dur.nl_batavia.fastest.days|int}}.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The early voyages were much slower: a median of {{dur.nl_batavia.median_pre1820|int}} days before 1820, against {{dur.nl_batavia.median_post1820|int}} after. Part of that is the weeks Company ships spent at the Cape, but even the leg from the Cape to Batavia shrank from {{dur.cape_batavia.median_pre1820|int}} days to {{dur.cape_batavia.median_post1820|int}}. There are only {{dur.nl_batavia.n_pre1820|int}} early voyages, though, so take that as a sketch. Elsewhere, the Spanish mail packets ran downwind from La Coruña to Puerto Rico in {{dur.spain_puertorico.median|int}} days, but needed {{dur.havana_spain.median|int}} to get home from Havana.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_durations.png|Chart of voyage times as dots and bars: home waters to Batavia about 100 days, Batavia to home waters about 110, home waters to the Cape 85, Cape to Batavia 52, home waters to Suriname 35, to India 133, to the Caribbean 38, Spanish ports to Puerto Rico 38, Havana to Spain 81, Spain to the River Plate 70|Voyage times on the great routes: median (dot), middle half of voyages (bar) and fastest to slowest (line).}}
+
+<!-- wp:pullquote -->
+<figure class="wp-block-pullquote"><blockquote><p>Homebound ships crossed 30° N {{volta_shift_30|deg}} further west than outbound ones. The wind, not the map, drew the route.</p></blockquote></figure>
+<!-- /wp:pullquote -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">A weather record hiding in the logbooks</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>The wind entries are a treasure in their own right. The officers wrote in English, Dutch, Spanish and French, in compass points and in words like "topgallant breeze" and "flauwe koelte", and the CLIWOC team translated them into degrees and forces. Averaged over 5° squares, they draw the world's wind belts: steady easterly trade winds either side of the equator ({{wind.named.ne_trades.share|pct}} of winds in the north-east trade belt came from between north and east), westerlies further out, and between them the doldrums, where {{wind.named.doldrums.calm_var|pct1}} of entries were calm or variable, {{wind.calm_ratio|f1}} times the rate in the trades. In the northern Indian Ocean you can watch the monsoon turn round between winter and summer.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_winds.png|Map of arrows showing the mean logbook wind in each 5 degree square, pointing west in the trade wind belts, east in the westerlies and roaring forties, and a line chart comparing the logbook west-to-east wind by latitude with a modern reanalysis, the two lines following each other closely through the trades|The logbook winds, and the Atlantic's wind belts compared with the modern NCEP/NCAR reanalysis.}}
+
+<!-- wp:paragraph -->
+<p>How good are they? I set each entry against today's long-term average wind for the same place and month. In the {{wind.agree.cells_steady|int}} squares where today's wind is steady, the logbook average points within 45° of the modern one in {{wind.agree.share45_steady|pct}}, with a median difference of just {{wind.agree.median_steady|int}}°. Any single day's entry is noisier, as you would expect from a day's weather, but the climate is there, written down by men who never saw a weather map.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">What the logbooks leave out</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>This is a map of the logbooks that survived and were typed up, not of all shipping, and the gaps are big. CLIWOC worked in British, Dutch, Spanish and French archives, so Portuguese, American, Danish and Swedish ships are almost missing, and so are most merchant ships. Navies dominate: {{navy_share|pct}} of the records are naval. Each nation is lopsided in time. {{spanish_1760_1799_share|pct}} of the Spanish positions date from 1760 to 1799, {{dutch_1820_share|pct}} of the Dutch from 1820 or later, and the British stop in the 1820s. The Pacific is nearly empty, with Cook's Endeavour and Resolution among the few lines there. And the positions are estimates, worked out from course and speed, with longitude especially uncertain before chronometers.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_coverage.png|Stacked bar chart of daily positions by decade from the 1750s to the 1850s: British red bars large until the 1800s, a big gold Spanish block in the 1770s, a dip in the 1810s, and orange Dutch bars dominating from the 1820s to the 1850s|Who kept the records: daily logbook positions by decade and nation.}}
+
+<!-- wp:paragraph -->
+<p>One more contrast. Set against today's ship traffic, the old roads are nearly deserted. {{modern.region.south_indian.sail_share|pct1}} of the logbook record crosses the southern Indian Ocean between 35° and 50° S; today that band carries about {{modern.region.south_indian.ais_share|pct2}} of ship traffic. Steam, the Suez Canal and the Panama Canal moved the world's shipping to the Red Sea and the Strait of Malacca, waters the logbook ships barely touched.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_thennow.png|Two world maps of 2 degree squares: on top, logbook passages in red concentrated in the Atlantic, round the Cape and across the southern Indian Ocean; below, ship traffic today in blue spread across all oceans and darkest in the North Atlantic, Mediterranean, Red Sea, Indian Ocean and around East Asia|Where the logbook ships sailed (top) and where ships sail today (bottom), by 2° square.}}
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">How I did this</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>I used CLIWOC version 2.1 as a GeoJSON of ship tracks prepared by Francisco Correoso, cut each record into passages wherever the log fell silent for more than 10 days, and removed {{clean.spikes|int}} obvious position slips. For routes and voyage times I drew circles round {{ports_n|int}} ports and anchorages and a box round European home waters, and timed each voyage from the last day at the start to the first day at the destination. Crossings of lines of latitude and longitude are interpolated between daily positions. The wind comparison uses the NCEP/NCAR reanalysis monthly averages for 1991 to 2020, and today's shipping uses the World Bank and IMF ship density summed over 2° squares. Everything is in the paper and the code.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://maps.tristanhotham.com/ships-before-steam/">Explore the interactive version</a></div>
+<!-- /wp:button -->
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://doi.org/10.5281/zenodo.23857610">Read the paper</a></div>
+<!-- /wp:button -->
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://github.com/Tristan-Hotham/ships-before-steam">Data and code</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">Notes and sources</h3>
+<!-- /wp:heading -->
+
+<!-- wp:list -->
+<ul class="wp-block-list"><!-- wp:list-item -->
+<li>García-Herrera, R., Können, G.P., Wheeler, D.A., Prieto, M.R., Jones, P.D. and Koek, F.B. (2005) CLIWOC: a climatological database for the world's oceans 1750 to 1854. Climatic Change 73, 1 to 12. Database version 2.1, released by the Universidad Complutense de Madrid and KNMI. Openly published research data; I found no formal licence, so please check the original terms before reusing the positions.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>Francisco Correoso, cliwoc_vis (github.com/kikocorreoso/cliwoc_vis): the GeoJSON of CLIWOC voyages used here.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>NCEP/NCAR Reanalysis 1 long-term monthly means, NOAA Physical Sciences Laboratory (Kalnay et al. 1996). Public domain.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>World Bank, Global Shipping Traffic Density (IMF and World Bank, AIS data 2015 to 2021). CC BY 4.0.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>Wikipedia, 'Age of Sail' and 'Trade winds', for background. Natural Earth for land and coastlines.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>This study's text, figures and data: CC BY 4.0. Code: MIT.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->

@@ -1,0 +1,151 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+\newfontfamily\headfont{Inter}[UprightFont=*-ExtraBold,BoldFont=*-ExtraBold,Extension=.otf,Path=/usr/share/fonts/opentype/inter/]
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{graphicx,booktabs,float,caption,array,xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage[round]{natbib}
+\usepackage{setspace}
+\setstretch{1.05}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.75}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\titleformat{\section}{\headfont\Large}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\headfont\large}{\thesubsection}{0.8em}{}
+\captionsetup{font=small,labelfont=bf}
+\urlstyle{same}
+\hypersetup{pdftitle={Ships Before Steam: The Trade-Wind Highways of the Age of Sail in British, Dutch, Spanish and French Logbooks, 1750 to 1850},pdfauthor={Tristan Hotham}}
+
+\begin{document}
+\begin{center}
+{\Large\bfseries Ships Before Steam\par}
+\vspace{0.4em}
+{\large The trade-wind highways of the age of sail in British, Dutch,\\Spanish and French logbooks, 1750 to 1850\par}
+\vspace{1.2em}
+{\large Tristan Hotham\par}
+\vspace{0.3em}
+{\small Independent researcher\\
+ORCID: 0000-0003-4931-9349\\
+DOI: \detokenize{10.5281/zenodo.23857610}\par}
+\vspace{0.8em}
+2026
+\end{center}
+
+\begin{quote}
+\small
+\begin{center}\textbf{Abstract}\end{center}
+Ships' logbooks recorded a position and the wind every day, and the CLIWOC project digitised {{n_obs_raw|int}} such entries from British, Dutch, Spanish and French archives for climate research. I use them as a record of where sailing ships went. Cutting {{n_tracks|int}} logbook records into {{n_passages|int}} passages of daily positions, I measure the great sailing routes, voyage times and the winds the officers wrote down. Ships between Europe and the South Atlantic crossed 30° N at a median of {{volta.30.out.median_lon|lonw}} outbound and {{volta.30.home.median_lon|lonw}} homebound, the westward loop known as the \emph{volta do mar}; {{volta.azores38.home.share|pct}} of homebound crossings of 38° N passed the longitudes of the Azores, against {{volta.azores38.out.share|pct}} of outbound ones. Dutch ships bound for Java crossed 75° E at a median of {{brouwer.75.dutch.median_lat|lats}}, keeping to the Brouwer route through the roaring forties. The median voyage from home waters to Batavia took {{dur.nl_batavia.median|int}} days ({{dur.nl_batavia.n|int}} voyages), {{dur.nl_batavia.median_pre1820|int}} before 1820 and {{dur.nl_batavia.median_post1820|int}} after. Averaged in 5° squares, the logbook winds point within 45° of a modern reanalysis climatology in {{wind.agree.share45_steady|pct}} of squares where the modern wind is steady. The record is a sample of surviving, mostly naval logbooks, uneven by nation and decade, and I report its coverage alongside every result.
+
+\textbf{Keywords:} age of sail; ships' logbooks; CLIWOC; trade winds; maritime history; historical climatology; volta do mar; Brouwer route
+\end{quote}
+
+\section{Introduction}
+Before steam, a ship's route was set by the wind. Sailors learned which winds blew where and when, and the great ocean routes of the eighteenth and early nineteenth centuries followed them: south with the north-east trades, across the equatorial calms where they were narrowest, home in a wide loop to pick up the westerlies, and east across the southern Indian Ocean in the strong westerlies near 40° S. These routes are well described in maritime history \citep{bruijn1987}, but they are usually drawn from sailing directions and a few famous voyages, not measured.
+
+Ships' logbooks offer a way to measure them. From the mid-eighteenth century officers on European ocean-going ships recorded the ship's position, its course and the wind every day, because the wind decided how far the ship drifted from its course. Several thousand logbooks survive in national archives. Between 2001 and 2003 the European project CLIWOC, the Climatological Database for the World's Oceans, digitised the weather and positions from {{n_logbook_ids|int}} of them for climate research \citep{garciaherrera2005}. Climate scientists have used the data to reconstruct past winds and pressure \citep{kuttel2010}, and they have examined how reliable the officers' wind records are \citep{wheeler2005}.
+
+This paper uses the same data as a record of shipping. It asks four descriptive questions. Where did the ships go, and do the logbooks show the routes described in histories of the age of sail? How long did voyages take? Do the winds the officers wrote down match the planet's wind belts as we know them today? And how much of all shipping does the record represent? An interactive version (\url{https://maps.tristanhotham.com/ships-before-steam/}) draws every passage and lets readers filter by decade, nation and operator.
+
+\section{Data}
+CLIWOC version 2.1 was released by the Universidad Complutense de Madrid and the Royal Netherlands Meteorological Institute (KNMI), with partners at the Universities of Sunderland and East Anglia, the Instituto de Ciencias Humanas, Sociales y Ambientales (Argentina) and the National Maritime Museum. I used the GeoJSON prepared by Francisco Correoso \citep{correoso} from the CLIWOC21 GeoPackage, which keeps, for each CLIWOC ship and voyage identifier, the ship's name, nationality, company, type, the archive holding the logbook, and the daily date, position, wind direction and wind force. It holds {{n_features|int}} records from {{n_logbook_ids|int}} logbooks with {{n_obs_raw|int}} positions dated {{year_min|raw}} to {{year_max|raw}}; {{share_obs_1750_1854|pct}} fall within CLIWOC's period of 1750 to 1854. I could not find a formal licence for CLIWOC: it is openly published research data, and I credit it in full and reuse it as such.
+
+Wind direction is recorded in degrees (the direction the wind blew from), translated by CLIWOC from compass points, with codes for calm and variable winds. Wind force is given in metres per second, translated from the logbooks' words using CLIWOC's dictionary of historical wind terms. Positions are mostly noon positions found by dead reckoning, corrected by observations of latitude; longitude at sea was uncertain until marine chronometers spread at the end of the eighteenth century.
+
+As a modern benchmark for the winds I used the NCEP/NCAR Reanalysis 1 long-term monthly mean near-surface winds for 1991 to 2020 \citep{kalnay1996}. For a rough comparison with shipping today I used the World Bank and IMF Global Shipping Traffic Density, built from AIS positions in 2015 to 2021 \citep{cerdeiro2020}, in its overview version that samples single pixels of the full raster; I use it only summed over 2° squares.
+
+\begin{table}[tbp]\centering\small\caption{Sources and licences.}\label{tab:sources}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{6.8cm}>{\raggedright\arraybackslash}p{3.4cm}}\toprule Source & Used & Licence\\\midrule
+CLIWOC v2.1 \citep{garciaherrera2005}, GeoJSON by \citet{correoso} & Daily positions, wind, ship, nation, company, archive & Openly published research data; no formal licence found\\
+NCEP/NCAR Reanalysis 1 \citep{kalnay1996} & Modern monthly mean winds & Public domain\\
+World Bank and IMF Global Shipping Traffic Density \citep{cerdeiro2020} & Ship traffic today, 2° sums & CC BY 4.0\\
+Natural Earth & Land, coastlines & Public domain\\
+\bottomrule\end{tabular}\end{table}
+
+\section{Methods}
+\subsection{Passages}
+A CLIWOC record can hold several voyages and run for years, so I cut each into passages. I sorted each record's positions by date and kept one per day. I dropped {{clean.spikes|int}} lone positions that lay more than 600 km from both neighbours while the neighbours were close together, which are almost certainly transcription slips. I rejoined the {{clean.multi_joined|int}} records that the GeoJSON had split at the antimeridian. Then I cut a record wherever the log was silent for more than 10 days or the next position implied more than 450 km a day, faster than a sailing ship's daily run, and kept passages with at least three positions. This gives {{n_passages|int}} passages with {{n_obs|int}} positions; the median passage lasts {{median_passage_days|int}} days and the median day's run between consecutive positions is {{median_daily_km|int}} km.
+
+Nation is the recorded nationality of ship and crew: British, Dutch, Spanish and French, plus {{n_other_tracks|int}} American, Swedish, Danish and Hamburg records grouped as other. Operators come from CLIWOC's company field: the Royal Navy, the English East India Company, the Dutch East India Company (VOC), the Dutch navy and admiralties, the Middelburgsche Commercie Compagnie, the Hudson's Bay Company and others. Spanish records have no company, so I grouped them by ship type: packet boats and mail frigates as the mail service (\emph{correos marítimos}), ships of the line, frigates, corvettes and brigs as navy. This is my inference from the ship type, not a recorded fact.
+
+\subsection{Ports, routes and voyage times}
+I drew circles and boxes round {{ports_n|int}} ports, anchorages and coasts, including one box for European home waters (the North Sea, the Channel and its approaches, from 47.5° to 56.5° N and 11° W to 9.5° E). A ship is 'at' a place when its position falls inside. A leg runs from a ship's last position at one place to its first position at the next place in the same record, passing over island ports of call (Madeira, the Canaries, Cape Verde, St Helena and Ascension), with no silence over 30 days. Legs give the busiest routes. A voyage for timing runs from the last position at the origin to the first position at the destination; calls on the way are allowed (Atlantic islands, the Cape, Rio de Janeiro, Iberian ports, Puerto Rico, Mauritius), a return to the origin or a call at another destination ends the search, and the log may be silent for at most 45 days. Times therefore run from leaving port or home waters to arriving off the destination, as the log records them.
+
+\subsection{Crossings}
+For each pair of consecutive positions in a passage that straddles a line of latitude or longitude, I interpolated linearly where it crossed. To study the \emph{volta do mar} I used passages between Europe and the South Atlantic, defined as those with a position north of 36° N between 30° W and 15° E and one south of 5° S between 60° W and 30° E; a crossing is outbound if the ship was moving south. To study the Brouwer route I used eastbound crossings of meridians in the southern Indian Ocean.
+
+\subsection{Winds}
+In each 5° square I averaged the unit vectors of the logbook winds (so each day counts the same whatever the force) in squares with at least {{wind.min_obs|int}} directional entries; the length of the mean vector, between 0 and 1, measures steadiness. For the benchmark I interpolated the reanalysis monthly mean wind to each entry's position and calendar month and averaged it in the same squares, so both sides share the same places and months. Agreement is the angle between the two mean directions. I also summarised the winds in 5° latitude bands for the Atlantic (70° W to 20° E, leaving out the Mediterranean and Europe's coasts) and the Indian Ocean (20° E to 115° E).
+
+\section{Results}
+\subsection{The record}
+The passages cover the Atlantic and Indian Oceans densely and the Pacific hardly at all: {{where.atlantic|pct}} of positions are in the Atlantic, {{where.indian|pct}} in the Indian Ocean and {{where.pacific|pct1}} in the Pacific (Figure~\ref{fig:world}). Dutch records hold {{nation.dutch.share_obs|pct}} of the positions, British {{nation.british.share_obs|pct}}, Spanish {{nation.spanish.share_obs|pct}} and French {{nation.french.share_obs|pct}}. Naval ships make up {{groups.navy|int}} of the {{n_tracks|int}} records ({{navy_share|pct}}), the East India companies {{groups.eic|int}} and the Spanish mail packets {{groups.correo|int}}.
+
+The record reaches from {{southmost.lat|f1}}° S, where Cook's Resolution turned back on {{famous.resolution.min_lat_day|raw}}, to {{northmost.lat|f1}}° N, reached by the Racehorse on {{northmost.day|raw}}. It also includes Cook's Endeavour ({{famous.endeavour.obs|int}} positions from {{famous.endeavour.year|raw}}), La Pérouse's Boussole ({{famous.boussole.obs|int}} positions) and {{steam.tracks|int}} records from steamships, the first the Dutch navy's Curaçao in {{steam.curacao_year|raw}}.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_world.png}\caption{Every passage in the record, coloured by nation. Lines join daily positions.}\label{fig:world}\end{figure}
+
+\subsection{Coverage}
+Coverage is very uneven in time (Figure~\ref{fig:coverage}, Table~\ref{tab:coverage}). {{spanish_1760_1799_share|pct}} of Spanish positions date from 1760 to 1799; {{dutch_1820_share|pct}} of Dutch positions from 1820 or later, many from logbooks held by KNMI; and {{british_pre1800_share|pct}} of British positions from before 1800, with none after {{nation.british.last_year|raw}}. The busiest decade is the {{busiest_decade.decade|raw}}s ({{busiest_decade.obs|int}} positions) and the thinnest the {{thinnest_decade.decade|raw}}s ({{thinnest_decade.obs|int}}), the years of the Napoleonic Wars. Comparisons across nations or decades therefore compare different kinds of ships in different periods.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_coverage.png}\caption{Daily positions by decade and nation.}\label{fig:coverage}\end{figure}
+
+{{TABLE_COVERAGE}}
+
+\subsection{The volta do mar}
+Ships sailing between Europe and the South Atlantic took different roads out and home (Figure~\ref{fig:volta}). At 30° N, {{volta.30.out.n|int}} outbound crossings had a median longitude of {{volta.30.out.median_lon|lonw}} (interquartile range {{volta.30.out.q3|lonw}} to {{volta.30.out.q1|lonw}}), and {{volta.30.home.n|int}} homebound crossings {{volta.30.home.median_lon|lonw}} ({{volta.30.home.q3|lonw}} to {{volta.30.home.q1|lonw}}), {{volta_shift_30|deg}} further west. At 20° N the medians were {{volta.20.out.median_lon|lonw}} and {{volta.20.home.median_lon|lonw}}. At 38° N, {{volta.azores38.home.share|pct}} of homebound crossings lay between 35° W and 20° W, the longitudes of the Azores, against {{volta.azores38.out.share|pct}} of outbound ones. Both directions crossed the equator far out in the Atlantic, at a median of {{volta.0.out.median_lon|lonw}} outbound and {{volta.0.home.median_lon|lonw}} homebound, avoiding the calms of the Gulf of Guinea.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_volta.png}\caption{Passages between Europe and the South Atlantic: outbound (red) and homebound (blue), with the median crossing of 30° N in each direction and the distribution of crossings.}\label{fig:volta}\end{figure}
+
+\subsection{The Brouwer route}
+From the Cape, Dutch ships ran east in the high southern latitudes (Figure~\ref{fig:brouwer}). Of {{brouwer.75.dutch.n|int}} Dutch eastbound crossings of 75° E, the median latitude was {{brouwer.75.dutch.median_lat|lats}} and {{brouwer.75.dutch.share_south30|pct}} lay south of 30° S; on voyages to Batavia the median Dutch ship reached {{brouwer.dutch_java_minlat.median|lats}} between 30° E and 100° E before turning north. British ships also used the westerlies (median {{brouwer.75.british.median_lat|lats}} at 75° E, {{brouwer.75.british.share_south30|pct}} south of 30° S) but, bound mostly for India, turned north sooner: at 90° E the British median was {{brouwer.90.british.median_lat|lats}} against {{brouwer.90.dutch.median_lat|lats}} for the Dutch.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_brouwer.png}\caption{British and Dutch passages in the Indian Ocean, with the median latitude of eastbound crossings of 75° E.}\label{fig:brouwer}\end{figure}
+
+\subsection{Voyage times}
+Table~\ref{tab:dur} and Figure~\ref{fig:dur} give voyage times. The most frequent long voyage in the record, home waters to Batavia, took a median of {{dur.nl_batavia.median|int}} days ({{dur.nl_batavia.n|int}} voyages, quartiles {{dur.nl_batavia.q1|int}} and {{dur.nl_batavia.q3|int}}); {{dur.nl_batavia.n_via_cape|int}} called at the Cape. The {{dur.nl_batavia.n_pre1820|int}} voyages before 1820 had a median of {{dur.nl_batavia.median_pre1820|int}} days and those from 1820 on {{dur.nl_batavia.median_post1820|int}}, {{nlb_speedup|pct}} shorter. Some of the difference is the long stay at the Cape made by Company ships, but the Cape to Batavia leg alone fell from {{dur.cape_batavia.median_pre1820|int}} to {{dur.cape_batavia.median_post1820|int}} days. The early figures rest on few voyages. On the Spanish mail routes the downwind run from La Coruña or Cádiz to Puerto Rico took {{dur.spain_puertorico.median|int}} days and the return from Havana {{dur.havana_spain.median|int}}.
+
+{{TABLE_DUR}}
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_durations.png}\caption{Voyage times on the great routes: median, interquartile range and range.}\label{fig:dur}\end{figure}
+
+\subsection{Busiest routes}
+Legs between named places show each nation's network. The busiest route is between European home waters and Batavia ({{routes_top.0.n|int}} legs, {{routes_top.0.by.dutch|int}} Dutch), then home waters and the Cape ({{routes_top.1.n|int}}) and the Cape and Batavia ({{routes_top.2.n|int}}). Dutch logbooks also trace the Atlantic triangle of the Middelburgsche Commercie Compagnie, which carried enslaved Africans from the Gold Coast to Suriname and the Caribbean: home waters to Suriname ({{routes_top.3.n|int}} legs) and the Gold Coast to home waters ({{routes_top.4.n|int}}). Spanish logbooks run from La Coruña and Cádiz to the River Plate, Puerto Rico and Havana; British ones, mostly naval, to the Cape, Barbados and Ceylon. The full table is in the data release.
+
+\subsection{Winds}
+The logbook winds reproduce the global wind belts (Figure~\ref{fig:winds}). In the Atlantic, {{wind.named.ne_trades.share|pct}} of winds between 10° and 25° N and 60° W and 15° W came from between north and east, and {{wind.named.se_trades.share|pct}} between 5° and 25° S from between east and south. In the southern Indian Ocean between 36° and 48° S, {{wind.named.forties.share|pct}} came from a westerly point, with a mean force of {{wind.ind_force_m40|f1}} m/s against {{wind.atl_force_0|f1}} m/s between the equator and 5° N in the Atlantic, where {{wind.named.doldrums.calm_var|pct1}} of entries were calm or variable, {{wind.calm_ratio|f1}} times the rate in the trade-wind belts. The monsoon reverses as expected (Figure~\ref{fig:monsoon}): in the northern Indian Ocean {{wind.named.monsoon_djf.share|pct}} of December to February winds came from the north-east quadrant and {{wind.named.monsoon_jja.share|pct}} of June to August winds from the south-west.
+
+Against the modern reanalysis, the mean logbook direction lies within 45° of the benchmark in {{wind.agree.share45_steady|pct}} of the {{wind.agree.cells_steady|int}} squares where the benchmark wind is steady (mean vector at least 3 m/s), and within 30° in {{wind.agree.share30_steady|pct}}, with a median difference of {{wind.agree.median_steady|int}}°; over all {{wind.agree.cells|int}} squares the share within 45° is {{wind.agree.share45_all|pct}}. Individual daily entries are noisier: {{wind.agree.obs_share45|pct}} lie within 45° of the monthly benchmark. Across {{wind.n_belts|int}} latitude bands the west-to-east components of the logbook and benchmark winds correlate at {{wind.belt_corr|f2}} and share a sign in {{wind.sign_agree|pct}}. The logbook westerlies look weaker than the benchmark's because daily winds vary much more in direction than monthly means; directions agree better than steadiness.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_winds.png}\caption{Top: mean logbook wind direction in each 5° square with at least {{wind.min_obs|int}} entries (length: steadiness; colour: force). Bottom: west-to-east component by latitude in the Atlantic, logbooks and the modern reanalysis.}\label{fig:winds}\end{figure}
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_monsoon.png}\caption{Logbook winds in the Indian Ocean in December to February and June to August.}\label{fig:monsoon}\end{figure}
+
+\subsection{Then and now}
+The sailing routes differ from today's shipping lanes (Figure~\ref{fig:now}). Over 2° squares the rank correlation between logbook passages and the AIS traffic index is {{modern.rho|f2}}. The southern Indian Ocean between 35° and 50° S holds {{modern.region.south_indian.sail_share|pct1}} of the logbook record and about {{modern.region.south_indian.ais_share|pct2}} of today's traffic index; the mid South Atlantic {{modern.region.south_atlantic_mid.sail_share|pct1}} against {{modern.region.south_atlantic_mid.ais_share|pct1}}. The Red Sea and Gulf of Aden carry {{modern.region.red_sea.ais_share|pct1}} of today's traffic and {{modern.region.red_sea.sail_share|pct2}} of the logbook record, and {{modern.top_nosail|pct}} of the busiest tenth of today's squares were crossed by no logbook ship. Because the logbooks are a sample and AIS reception varies, these are rough contrasts.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_thennow.png}\caption{Logbook passages (top) and ship traffic today (bottom), by 2° square; colour shows each square's rank among squares with any traffic.}\label{fig:now}\end{figure}
+
+\section{Limitations}
+The record is a sample of logbooks that survived, were archived in four countries and were chosen for digitisation, so it is dominated by navies and by particular periods for each nation; Portuguese, American, Danish and Swedish shipping and most merchant shipping are missing, and the Pacific is nearly empty. Comparisons across time mix changes in shipping with changes in which logbooks survive. Positions are dead-reckoning estimates with errors of tens of kilometres or more, especially in longitude before chronometers, and daily positions joined by straight lines are not the ship's true track. Port matching uses generous circles and boxes, so a ship passing close to a port can count as calling there, and voyage times begin when the log last places the ship in port or home waters. Wind directions and forces were translated from historical terms and compass points, whose accuracy varies between logbooks \citep{wheeler2005}; the benchmark is a modern reanalysis, so differences also reflect real change and model error. The AIS comparison uses a sampled overview raster and is only indicative.
+
+\section*{Data availability}
+Derived data (logbook records, passages with daily positions, voyages and durations, routes, crossings, wind grids and belts, coverage by decade, 2° squares and the full results) and all code are at \url{https://github.com/Tristan-Hotham/ships-before-steam} and archived with this paper. The text, figures and derived data are shared under CC BY 4.0 and the code under MIT. The logbook positions derive from CLIWOC v2.1, openly published research data for which I found no formal licence; anyone reusing them should credit \citet{garciaherrera2005} and check the original terms.
+
+\section*{AI statement}
+I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.
+
+\begin{thebibliography}{99}
+\bibitem[Bruijn et al.(1987)]{bruijn1987} Bruijn, J.R., Gaastra, F.S. and Schöffer, I. (1987) \emph{Dutch-Asiatic Shipping in the 17th and 18th Centuries}. The Hague: Martinus Nijhoff.
+\bibitem[Cerdeiro et al.(2020)]{cerdeiro2020} Cerdeiro, D.A., Komaromi, A., Liu, Y. and Saeed, M. (2020) World seaborne trade in real time: a proof of concept for building AIS-based nowcasts from scratch. IMF Working Paper 20/57. Data: World Bank, Global Shipping Traffic Density, CC BY 4.0.
+\bibitem[Correoso(n.d.)]{correoso} Correoso, F. (n.d.) cliwoc\_vis: CLIWOC visualisation and GeoJSON of CLIWOC voyages. \url{https://github.com/kikocorreoso/cliwoc_vis}
+\bibitem[Garc\'ia-Herrera et al.(2005)]{garciaherrera2005} García-Herrera, R., Können, G.P., Wheeler, D.A., Prieto, M.R., Jones, P.D. and Koek, F.B. (2005) CLIWOC: a climatological database for the world's oceans 1750 to 1854. \emph{Climatic Change} 73, 1 to 12.
+\bibitem[Kalnay et al.(1996)]{kalnay1996} Kalnay, E. et al. (1996) The NCEP/NCAR 40-year reanalysis project. \emph{Bulletin of the American Meteorological Society} 77, 437 to 471.
+\bibitem[Küttel et al.(2010)]{kuttel2010} Küttel, M., Xoplaki, E., Gallego, D., Luterbacher, J., García-Herrera, R., Allan, R., Barriendos, M., Jones, P.D., Wheeler, D. and Wanner, H. (2010) The importance of ship log data: reconstructing North Atlantic, European and Mediterranean sea level pressure fields back to 1750. \emph{Climate Dynamics} 34, 1115 to 1128.
+\bibitem[Wheeler(2005)]{wheeler2005} Wheeler, D. (2005) An examination of the accuracy and consistency of ships' logbook weather observations and records. \emph{Climatic Change} 73, 97 to 116.
+\end{thebibliography}
+\end{document}

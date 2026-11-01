@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ships Before Steam</title>
+<meta name="description" content="Real ships' logbooks from 1750 to 1850 drawn as voyage lines: {{n_passages|int}} passages from {{n_tracks|int}} CLIWOC logbook records, the trade-wind highways of the age of sail, the Brouwer route, the volta do mar, voyage times and the winds the officers wrote down.">
+<meta property="og:title" content="Ships before steam: the trade-wind highways of the age of sail, from real logbooks">
+<meta property="og:description" content="{{n_passages|int}} passages and {{n_obs|int}} daily positions from British, Dutch, Spanish and French logbooks, 1750 to 1850, with the winds they recorded.">
+<meta property="og:image" content="https://maps.tristanhotham.com/ships-before-steam/header.png">
+<meta property="og:url" content="https://maps.tristanhotham.com/ships-before-steam/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Chart room: chart paper, ink, sea glass; nation colours are set in the script. */
+:root{
+  --bg:#F7F3EA; --panel:#EEE8DA; --fg:#1C2430; --muted:#5F6670; --rule:#E2DACA; --card:#FFFCF5; --border:#D0C6B2;
+  --hot:#B5332A; --cool:#24557F; --gold:#B58A00; --sea:#E9EFEF; --land:#EFE9DC;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141922; --panel:#1E242E; --fg:#ECE7DE; --muted:#A3A9B2; --rule:#323A46; --card:#1A2029; --border:#46505E;
+  --hot:#E8796D; --cool:#8DB4DA; --gold:#E2BE4A; --sea:#18202A; --land:#232A33; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141922; --panel:#1E242E; --fg:#ECE7DE; --muted:#A3A9B2; --rule:#323A46; --card:#1A2029; --border:#46505E;
+  --hot:#E8796D; --cool:#8DB4DA; --gold:#E2BE4A; --sea:#18202A; --land:#232A33; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 18px/1.62 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+.wrap{max-width:700px;margin:0 auto;padding-block:28px 64px}
+.wrap .bleed{width:min(1180px,calc(100vw - 32px));margin-left:calc((100% - min(1180px,100vw - 32px))/2);margin-right:0}
+a{color:inherit;text-decoration-color:var(--hot);text-underline-offset:3px}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kicker b{background:var(--cool);color:#fff;padding:5px 8px;font-weight:500}
+header.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end;border-bottom:6px double var(--fg);padding-bottom:22px;margin-top:18px}
+h1{font:900 clamp(44px,11vw,96px)/.9 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 .a{color:var(--hot)} h1 .b{color:var(--cool)}
+.mark{width:clamp(78px,16vw,128px);height:auto;display:block;color:var(--fg)}
+.dek{grid-column:1/-1;font-size:21px;line-height:1.42;margin:8px 0 0;max-width:56ch}
+.byline{font:400 13px/1.4 var(--mono);color:var(--muted);margin-top:14px}
+h2{font:800 34px/1.04 var(--display);letter-spacing:-.01em;margin:54px 0 10px;text-wrap:balance}
+h2 .n{font:500 13px/1 var(--mono);color:var(--hot);display:block;letter-spacing:.1em;margin-bottom:10px}
+h3{font:600 20px/1.25 var(--display);margin:28px 0 6px}
+p{margin:0 0 16px}
+.lede::first-letter{font:900 72px/.8 var(--display);float:left;margin:6px 10px 0 0;color:var(--cool)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 8px}
+.stats div{background:var(--card);padding:14px 12px}
+.stats b{display:block;font:900 clamp(22px,4.4vw,32px)/1 var(--display);letter-spacing:-.01em}
+.stats b.h{color:var(--hot)} .stats b.c{color:var(--cool)} .stats b.g{color:var(--gold)}
+.stats span{font:400 12px/1.35 var(--mono);color:var(--muted);display:block;margin-top:6px}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.figure{margin:26px 0 30px}
+.fig-h{font:600 19px/1.25 var(--display);margin:0 0 4px}
+.fig-sub{font:400 13px/1.45 var(--mono);color:var(--muted);margin:0 0 12px}
+.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:10px}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:640px){.two{grid-template-columns:1fr}}
+svg text{font-family:var(--mono);fill:var(--fg)}
+.lab{font-size:12px}.lab.m{fill:var(--muted)}.lab.b{font-weight:500}.lab.s{font-size:11px}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font:400 12px/1.45 var(--mono);padding:8px 10px;border-radius:3px;max-width:290px;z-index:1000;transform:translate(-50%,calc(-100% - 12px));display:none}
+.tip b{font-weight:500}
+.controls{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.scrollrow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;max-width:100%}
+.scrollrow .btn{flex:0 0 auto;white-space:nowrap}
+.ctl-l{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px;flex:0 0 auto;align-self:center}
+.btn{font:500 12px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:8px 10px;cursor:pointer;min-height:36px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn[aria-pressed="false"].nat{opacity:.55;text-decoration:line-through}
+.btn .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.btn:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.slider{display:flex;gap:10px;align-items:center;flex:1 1 320px;min-width:0}
+.slider input[type=range]{flex:1 1 auto;min-width:0;accent-color:var(--cool)}
+.slider output{font:600 15px/1 var(--mono);min-width:94px}
+.searchbox{position:relative;flex:1 1 260px;min-width:0}
+input[type=search]{font:400 15px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 11px;min-height:40px;width:100%}
+.suggest{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;background:var(--card);border:1px solid var(--border);z-index:1001;font:400 13px/1.3 var(--mono);display:none;max-height:340px;overflow:auto}
+.suggest li{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--rule)}
+.suggest li span{color:var(--muted)}
+.suggest li[aria-selected="true"],.suggest li:hover{background:var(--panel)}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.side{background:var(--card);border:1px solid var(--border);padding:12px 12px 10px;font:400 13px/1.45 var(--mono);max-height:660px;overflow:auto}
+@media (max-width:900px){.side{max-height:none}}
+.side h4{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.side h4:first-child{margin-top:2px}
+.side .big{font:800 24px/1.1 var(--display);margin:2px 0 4px}
+.side .sub{color:var(--muted);font-size:12px;margin:0 0 8px}
+.side table{width:100%;border-collapse:collapse;margin:4px 0 6px}
+.side td{padding:4px 4px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.side td.num{text-align:right;white-space:nowrap}
+.side ol{margin:4px 0 8px;padding-left:20px}
+.go{cursor:pointer;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
+.back{font:400 12px var(--mono);background:none;border:0;color:var(--muted);padding:0;cursor:pointer;text-decoration:underline;margin-bottom:6px}
+.sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15)}
+.lmap{height:640px;border:1px solid var(--border);background:var(--sea);border-radius:2px}
+@media (max-width:600px){.lmap{height:min(64vh,480px)}}
+.leaflet-container{font:400 12px/1.4 var(--mono);background:var(--sea)}
+.lyrBtn{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;font:600 12px/1 var(--mono);padding:8px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.lyrBtn[aria-expanded="true"]{background:var(--fg);color:var(--bg)}
+.lyrPanel{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 12px 8px;margin-top:6px;width:260px;box-shadow:0 2px 10px rgba(0,0,0,.15);font:400 12px/1.3 var(--mono);max-height:min(70vh,540px);overflow:auto}
+.lyrPanel[hidden]{display:none}
+.lyrPanel .row{margin:0 0 9px}
+.lyrPanel label{display:flex;gap:6px;align-items:center;cursor:pointer;font-weight:600}
+.lyrPanel input[type=range]{width:100%;accent-color:var(--fg)}
+.lyrPanel select{font:400 12px var(--mono);background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:2px;padding:2px 4px;width:100%;min-height:0}
+.lyrPanel .sub{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:11px;margin-top:3px}
+.lyrPanel .sub span{flex:0 0 58px}
+.lyrPanel .hd{font:500 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 7px;border-top:1px solid var(--rule);padding-top:9px}
+.lyrPanel .reset{font:400 11px var(--mono);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.seaL{font:italic 400 13px/1.1 var(--body);color:var(--cool);white-space:nowrap;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 4px var(--bg),0 0 6px var(--bg);pointer-events:none;text-align:center;opacity:.85}
+.beltL{font:600 11.5px/1.15 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 2px var(--bg),0 0 3px var(--bg),0 0 4px var(--bg),0 0 6px var(--bg),0 0 8px var(--bg);pointer-events:none;text-align:center}
+.beltL small{display:block;font-weight:400;color:var(--muted)}
+.portL{font:500 10.5px/1 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);pointer-events:none}
+.portL i{display:inline-block;width:6px;height:6px;border-radius:50%;border:1.5px solid var(--fg);background:var(--bg);margin-right:4px;vertical-align:0}
+.arrow svg{overflow:visible;display:block}
+.mapnote{background:color-mix(in srgb,var(--card) 92%,transparent);border:1px solid var(--border);border-radius:3px;padding:6px 9px;font:400 12px/1.35 var(--mono);max-width:min(300px,62vw);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.mapnote:empty{display:none}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--card);color:var(--fg);border-bottom-color:var(--border)}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--card) 85%,transparent)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--fg)}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font:400 12px/1.3 var(--mono);color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:18px;height:3px;margin-right:6px;border-radius:2px}
+.legend i.ar{width:auto;height:auto;background:none!important}
+.pull{font:600 26px/1.25 var(--display);border-left:6px solid var(--cool);padding:4px 0 4px 18px;margin:30px 0}
+.note{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;font-size:16px;margin:22px 0}
+.note h3{margin-top:0}
+table.t{width:100%;border-collapse:collapse;font:400 13px/1.4 var(--mono);margin:10px 0 6px}
+table.t th{text-align:left;font-weight:500;color:var(--muted);border-bottom:2px solid var(--fg);padding:6px 6px 6px 0}
+table.t td{border-bottom:1px solid var(--rule);padding:6px 6px 6px 0;vertical-align:top}
+table.t td.num,table.t th.num{text-align:right;white-space:nowrap}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+details{margin:14px 0}
+summary{font:500 13px/1.4 var(--mono);cursor:pointer;color:var(--fg);padding:8px 0}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.cta a{font:500 13px/1 var(--mono);text-decoration:none;border:1px solid var(--fg);padding:11px 14px;border-radius:3px}
+.cta a.p{background:var(--cool);border-color:var(--cool);color:#fff}
+footer{border-top:6px double var(--fg);margin-top:56px;padding-top:16px;font:400 13px/1.55 var(--mono);color:var(--muted)}
+footer p{margin:0 0 10px}
+.theme{position:fixed;right:12px;bottom:12px;z-index:1002}
+@media print{.theme,.controls{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker"><b>Data study</b><span>History</span><span>World oceans, 1750 to 1850</span></div>
+<header class="hero">
+  <h1>Ships before <span class="a">steam</span></h1>
+  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><g id="heroMark"></g></svg>
+  <p class="dek">Before engines, a ship went where the wind let it. Officers wrote down their position, the wind and the weather every day, and thousands of their logbooks survive. Drawn as lines, {{n_passages|int}} stretches of real voyages from British, Dutch, Spanish and French logbooks show the highways of the age of sail: out with the trade winds, round in a great loop home, and east along the roaring forties.</p>
+</header>
+<div class="byline">Dr Tristan Hotham · Independent researcher · 2026 · Data: CLIWOC v2.1 logbook database (Garcia-Herrera et al. 2005); NCEP/NCAR Reanalysis 1; World Bank and IMF ship density; Natural Earth</div>
+
+<div class="stats">
+  <div><b class="c">{{n_obs|int}}</b><span>daily positions from {{n_tracks|int}} logbook records, {{year_min|raw}} to {{year_max|raw}}</span></div>
+  <div><b class="h">{{volta_shift_30|deg}}</b><span>further west that homebound ships crossed 30° N than outbound ones: the volta do mar</span></div>
+  <div><b class="g">{{dur.nl_batavia.median|int}} days</b><span>median sailing time from home waters to Batavia, {{dur.nl_batavia.n|int}} voyages</span></div>
+  <div><b>{{wind.agree.share45_steady|pct}}</b><span>of 5° squares where the logbook winds point within 45° of the modern average</span></div>
+</div>
+
+<p class="lede">From the 1750s onwards almost every officer on an ocean-going European ship kept a logbook. Each day at noon it recorded where the ship was, worked out from the course, speed and the occasional sight of the sun, and how the wind blew, because the wind decided how far the ship had drifted. Between 2001 and 2003 a European project called CLIWOC, the Climatological Database for the World's Oceans, went into the archives of Britain, the Netherlands, Spain and France and typed up {{n_obs_raw|int}} of those daily entries from {{n_logbook_ids|int}} logbooks, for climate scientists. They also happen to be the best open record of where sailing ships actually went.</p>
+<p>The map below draws every one of them. Each line is a passage: an unbroken run of daily positions in one logbook, from the Channel to the Cape, Cádiz to Havana, Batavia to St Helena. Colour shows the ship's nation. The arrows are the logbook winds themselves, averaged on a 5° grid. Slide through the decades, pick a nation or a kind of operator, search for a ship, or click a line to see whose it was.</p>
+
+<h2><span class="n">01 · The map</span>Every logbook, every day at sea</h2>
+<div class="bleed" id="atlas">
+<div class="controls">
+  <div class="slider"><span class="ctl-l">Decade</span><input type="range" id="dec" min="0" max="12" step="1" value="0" aria-label="Decade"><output id="decOut">All years</output></div>
+  <button class="btn" id="play" aria-pressed="false">Play</button>
+</div>
+<div class="controls"><div class="scrollrow" id="natRow"><span class="ctl-l">Nation</span></div></div>
+<div class="controls"><div class="scrollrow" id="grpRow"><span class="ctl-l">Operator</span></div></div>
+<div class="controls">
+  <div class="searchbox"><input type="search" id="q" placeholder="Search a ship or a port" aria-label="Search a ship or a port" autocomplete="off"><ul class="suggest" id="sug" role="listbox"></ul></div>
+</div>
+<div class="controls"><div class="scrollrow" id="focusRow"><span class="ctl-l">Show me</span></div></div>
+<div class="mapgrid">
+  <div><div id="map" class="lmap" role="application" aria-label="Map of logbook voyages 1750 to 1850"></div>
+    <div class="legend" id="legend"></div></div>
+  <div class="side" id="side" aria-live="polite"></div>
+</div>
+<p class="src">Lines: CLIWOC v2.1 daily logbook positions (noon positions, mostly by dead reckoning), cut into passages where the log is silent for more than 10 days. Arrows: mean logbook wind direction in each 5° square with at least {{wind.min_obs|int}} observations; length shows how steady it was, colour how strong. Today's shipping: World Bank and IMF AIS density, 2015 to 2021, summed over 2° squares. Base map tiles © Esri.</p>
+</div>
+
+<h2><span class="n">02 · The trade-wind highways</span>Out by Africa, home by the Azores</h2>
+<p>The lines make the first rule of the age of sail plain: you could not sail straight to where you were going and back the same way. Ships bound south from Europe ran down the coast of Africa past Madeira and the Canaries, picked up the north-east trade winds, and crossed the equator well out in the Atlantic, at a median of {{volta.0.out.median_lon|lonw}}, to avoid the calms of the Gulf of Guinea. Coming home they could not beat back against those same trades, so they swung out west in a great arc, the Portuguese <i>volta do mar</i> or "turn of the sea", until they reached the westerlies near the Azores and ran home before them.</p>
+<p>The logbooks measure it. Of the {{euro_south_n|int}} crossings of 30° N by ships sailing between Europe and the South Atlantic, outbound ships crossed at a median of {{volta.30.out.median_lon|lonw}} and homebound ships at {{volta.30.home.median_lon|lonw}}, {{volta_shift_30|deg}} further west. At 38° N, the latitude of the Azores, {{volta.azores38.home.share|pct}} of homebound ships passed between 35° W and 20° W; only {{volta.azores38.out.share|pct}} of outbound ships did.</p>
+<div class="figure"><p class="fig-h">Where ships crossed 30° N</p><p class="fig-sub">Ships on passages between Europe and the South Atlantic, by the longitude where their daily track crossed 30° N, in 5° bins. Hover a bar.</p><div class="chart" id="voltaChart"></div></div>
+<div class="cta"><a href="#atlas" data-focus="volta">The volta do mar on the map</a></div>
+
+<h2><span class="n">03 · The roaring forties</span>The Dutch road to Java</h2>
+<p>In 1611 the Dutch captain Hendrik Brouwer found that a ship leaving the Cape of Good Hope could run east in the strong westerlies near 40° S and then turn north for Java, instead of creeping up the coast of Africa against the monsoon. The Dutch East India Company soon made his route compulsory. The logbooks show it still in use two centuries later. Of {{brouwer.75.dutch.n|int}} Dutch crossings of 75° E heading east in the southern Indian Ocean, the median was at {{brouwer.75.dutch.median_lat|lats}} and {{brouwer.75.dutch.share_south30|pct}} were south of 30° S. On voyages to Batavia the median Dutch ship got as far south as {{brouwer.dutch_java_minlat.median|lats}} before turning north.</p>
+<p>British ships used the forties too, but many were bound for India rather than Java and peeled off northward sooner: at 90° E the median British eastbound crossing was at {{brouwer.90.british.median_lat|lats}}, against {{brouwer.90.dutch.median_lat|lats}} for the Dutch. The logbook winds in the forties blow from a westerly point {{wind.named.forties.share|pct}} of the time, with a mean force of {{wind.ind_force_m40|f1}} m/s, nearly twice that of the equatorial calms.</p>
+<div class="figure"><p class="fig-h">How far south ships crossed 75° E</p><p class="fig-sub">Eastbound crossings of 75° E in the southern hemisphere, by latitude, in 2.5° bins.</p><div class="chart" id="brouwerChart"></div></div>
+<div class="cta"><a href="#atlas" data-focus="brouwer">The Brouwer route on the map</a></div>
+
+<h2><span class="n">04 · How long it took</span>A hundred days to Batavia</h2>
+<p>Because each log is dated, the time between leaving one place and reaching another can be read straight off it. I counted a voyage from a ship's last position in home waters (the North Sea, the Channel and its approaches) to its first position at the destination, allowing calls on the way. {{dur.nl_batavia.n|int}} voyages reached Batavia, nearly all of them Dutch: the median took {{dur.nl_batavia.median|int}} days, and the quartiles were {{dur.nl_batavia.q1|int}} and {{dur.nl_batavia.q3|int}}. The fastest was the {{dur.nl_batavia.fastest.ship|raw}} in {{dur.nl_batavia.fastest.year|raw}}, in {{dur.nl_batavia.fastest.days|int}} days.</p>
+<p>Earlier voyages took far longer. The {{dur.nl_batavia.n_pre1820|int}} voyages that left before 1820 had a median of {{dur.nl_batavia.median_pre1820|int}} days, against {{dur.nl_batavia.median_post1820|int}} days from 1820 on. Part of that is the long stop at the Cape that Company ships made, but even the run from the Cape to Batavia fell from a median of {{dur.cape_batavia.median_pre1820|int}} days to {{dur.cape_batavia.median_post1820|int}}. The early numbers rest on few voyages, so treat them as a sketch.</p>
+<div class="figure"><p class="fig-h">Voyage times on the great routes</p><p class="fig-sub">Days from the last position at the start to the first position at the destination. Dot: median; bar: middle half of voyages; whisker: fastest and slowest. Number of voyages in brackets.</p><div class="chart" id="durChart"></div></div>
+<p>The Spanish mail packets, the <i>correos marítimos</i>, ran from La Coruña to Puerto Rico in a median of {{dur.spain_puertorico.median|int}} days, downwind all the way in the trades. Getting home from Havana took {{dur.havana_spain.median|int}}. British ships reached the Caribbean from home waters in {{dur.channel_caribbean.median|int}} days and India in {{dur.channel_india.median|int}}.</p>
+
+<h2><span class="n">05 · The winds they wrote down</span>A climate record hiding in the logbooks</h2>
+<p>Officers recorded the wind in words and compass points, in English, Dutch, Spanish and French, and the CLIWOC team translated them into degrees and forces. {{wind.n_dir|int}} daily entries ({{wind.share_dir|pct}}) give a direction. Averaged in 5° squares they draw the planet's wind belts as a meteorologist would: easterly trade winds either side of the equator, westerlies further out, and calms in between. In the Atlantic, {{wind.named.ne_trades.share|pct}} of winds between 10° and 25° N came from between north and east, the north-east trades, and {{wind.named.se_trades.share|pct}} between 5° and 25° S came from between east and south. Between the equator and 5° N, {{wind.named.doldrums.calm_var|pct1}} of entries were calm or variable, {{wind.calm_ratio|f1}} times the rate in the trade-wind belts: the doldrums.</p>
+<div class="figure"><p class="fig-h">The Atlantic's wind belts, from logbooks and from today's climate</p><p class="fig-sub">Mean west-to-east part of the wind by 5° latitude band, 70° W to 20° E. Negative: from the east (trades). Positive: from the west (westerlies). Logbooks: average of daily wind directions. Modern: NCEP/NCAR reanalysis monthly means for the same places and months.</p><div class="chart" id="beltChart"></div></div>
+<p>To check them, I set every logbook wind against the modern long-term average (the NCEP/NCAR reanalysis, 1991 to 2020) for the same place and calendar month. In the {{wind.agree.cells_steady|int}} squares where today's average wind is steady, the logbook mean points within 45° of it in {{wind.agree.share45_steady|pct}} and within 30° in {{wind.agree.share30_steady|pct}}, with a median difference of {{wind.agree.median_steady|int}}°. A single day's wind is noisier: {{wind.agree.obs_share45|pct}} of daily entries fall within 45° of the average. Across the {{wind.n_belts|int}} latitude bands of the Atlantic and Indian Oceans, the logbook and modern west-to-east components correlate at {{wind.belt_corr|f2}}. The northern Indian Ocean shows the monsoon flip: from December to February {{wind.named.monsoon_djf.share|pct}} of winds there came from the north-east quadrant, from June to August {{wind.named.monsoon_jja.share|pct}} from the south-west.</p>
+<div class="cta"><a href="#atlas" data-focus="windsDJF">Winds in December to February</a><a href="#atlas" data-focus="windsJJA">Winds in June to August</a></div>
+
+<h2><span class="n">06 · The busiest routes</span>Who sailed where</h2>
+<p>Each nation's logbooks trace its own empire. Joining the places each ship sailed between (passing over island calls such as Madeira and St Helena), the busiest route in the record is between Europe and Batavia, with {{routes_top.0.n|int}} legs, {{routes_top.0.by.dutch|int}} of them Dutch, followed by Europe and the Cape ({{routes_top.1.n|int}}). The Dutch also sailed to Suriname and the Gold Coast: many of those logbooks belong to the Middelburgsche Commercie Compagnie of Zeeland, whose ships carried enslaved Africans to the Caribbean, and their lines trace that triangle. Spanish logbooks run from La Coruña and Cádiz to Puerto Rico, Havana and the River Plate. British logbooks, most of them from the Royal Navy, reach the Cape, the Caribbean and Ceylon.</p>
+<div class="figure"><p class="fig-h">The most sailed routes for each nation</p><p class="fig-sub">Legs between named places (both directions together), counted from consecutive port visits in each logbook. Click a route to see it on the map.</p><div id="routeTable"></div></div>
+
+<h2><span class="n">07 · Who kept the records</span>A sample, not a census</h2>
+<p>This is a map of surviving, archived and digitised logbooks, not of all shipping. CLIWOC worked in British, Dutch, Spanish and French archives, so Portuguese, Danish, Swedish and American ships are almost absent ({{n_other_tracks|int}} records between them), as is most merchant shipping, whose logs were rarely kept. Navies dominate: {{groups.navy|int}} of the {{n_tracks|int}} records ({{navy_share|pct}}) are from naval ships. Each nation is lopsided in time too. {{spanish_1760_1799_share|pct}} of the Spanish positions date from 1760 to 1799; {{dutch_1820_share|pct}} of the Dutch from 1820 or later, many of them logbooks held by KNMI, the Dutch weather service; and {{british_pre1800_share|pct}} of the British from before 1800. The thinnest decade is the {{thinnest_decade.decade|raw}}s, the years of the Napoleonic Wars, with {{thinnest_decade.obs|int}} positions.</p>
+<div class="figure"><p class="fig-h">Daily positions by decade and nation</p><p class="fig-sub">All {{n_obs|int}} positions, by the decade of the logbook date. A handful before 1750 and after 1849 are included in the end bars.</p><div class="chart" id="covChart"></div></div>
+<div class="tablewrap"><table class="t" id="covTable"></table></div>
+<p>Some famous voyages are in it. Cook's Endeavour is there from {{famous.endeavour.year|raw}}, and his Resolution, whose log reaches {{famous.resolution.min_lat|lats}} on {{famous.resolution.min_lat_day|raw}}, the farthest south anyone had then sailed. So are La Pérouse's Boussole, lost with all hands in 1788, and the Racehorse, which reached {{northmost.lat|f1}}° N on {{northmost.day|raw}} on a Royal Navy attempt to sail towards the North Pole. And the end of the age is there too: {{steam.tracks|int}} records come from steamships, the first of them the Dutch navy's Curaçao in {{steam.curacao_year|raw}}, on one of the first Atlantic crossings made largely under steam.</p>
+<p>The positions themselves carry errors. Most were worked out by dead reckoning, from course and speed, and longitude at sea was uncertain until chronometers spread at the end of the eighteenth century. I removed {{clean.spikes|int}} lone positions that jump hundreds of kilometres away and straight back, but smaller errors remain. A day here is one entry, usually at noon: the lines join noon positions with straight segments, not the ship's real course.</p>
+
+<h2><span class="n">08 · Then and now</span>The roads the engines abandoned</h2>
+<p>Steam, the Suez Canal (opened in 1869) and the Panama Canal (1914) freed ships from the wind, and the map of the sea changed. Comparing the logbook record with today's ship traffic, measured from AIS positions by the World Bank and IMF and summed over 2° squares, the two agree only loosely (rank correlation {{modern.rho|f2}}). {{modern.region.south_indian.sail_share|pct1}} of the logbook record crosses the southern Indian Ocean between 35° and 50° S, against about {{modern.region.south_indian.ais_share|pct1}} of today's traffic. The Red Sea and the Gulf of Aden carry {{modern.region.red_sea.ais_share|pct1}} of today's traffic but only {{modern.region.red_sea.sail_share|pct2}} of the logbook record, and the Strait of Malacca {{modern.region.malacca.sail_share|pct2}}. {{modern.top_nosail|pct}} of the busiest tenth of today's squares saw no logbook ship at all. One caution: the logbook record is a sample, so 'no logbook ship' does not mean no ship sailed there.</p>
+<div class="figure"><p class="fig-h">Share of the logbook record and of today's traffic</p><p class="fig-sub">Logbooks: passages crossing each 2° square. Today: AIS ship density index, 2015 to 2021. Both as a share of their world total.</p><div class="chart" id="modChart"></div></div>
+<p class="pull">The logbooks still know the winds: in {{wind.agree.share45_steady|pct}} of squares their average points the way today's does.</p>
+
+<h2><span class="n">09 · How I did this</span>Methods and caveats</h2>
+<p><b>Data.</b> CLIWOC version 2.1, as a GeoJSON of ship tracks prepared by Francisco Correoso (kikocorreoso/cliwoc_vis on GitHub) from the CLIWOC21 GeoPackage, which keeps each logbook entry's position, date, wind direction and force, and the ship, nationality, company, ship type and archive. The file holds {{n_features|int}} records (CLIWOC ship and voyage identifiers, from {{n_logbook_ids|int}} logbooks) and {{n_obs_raw|int}} positions from {{year_min|raw}} to {{year_max|raw}}; {{share_obs_1750_1854|pct}} fall in CLIWOC's period of 1750 to 1854.</p>
+<p><b>Passages.</b> I sorted each record's positions by date, kept one a day, dropped lone spikes, and cut the record wherever the log was silent for more than 10 days or the next position implied more than 450 km a day. That gives {{n_passages|int}} passages with at least 3 positions. A passage can include days at anchor. Operators come from CLIWOC's company field (Royal Navy, East India Company, VOC, the Dutch navy and admiralties and so on); for Spanish ships, which have no company, I used the ship type: packet boats and mail frigates are counted as mail packets, ships of the line, frigates, corvettes and brigs as navy.</p>
+<p><b>Routes and voyage times.</b> I drew circles and boxes round {{ports_n|int}} ports and anchorages and called a ship 'at' a place when its position fell inside. A leg runs from a ship's last position at one place to its first position at the next place, with no silence over 30 days; a voyage for timing may include calls on the way but no silence over 45 days. Crossings of a line of latitude or longitude are interpolated between daily positions. Times run from when the log last puts the ship in port or home waters, so they are a little shorter than door-to-door times.</p>
+<p><b>Winds.</b> CLIWOC's directions are where the wind blew from, with codes for calm and variable winds. In each 5° square I averaged unit vectors (so a strong gale and a light breeze count the same), and compared them with NCEP/NCAR Reanalysis 1 monthly means (1991 to 2020) interpolated to each entry's place and month. The reanalysis is a modern climate model's reconstruction, so differences mix logbook errors, sampling and real change since the eighteenth century.</p>
+<p><b>Today's shipping.</b> The World Bank and IMF Global Shipping Traffic Density raster, in the overview version that samples single pixels, summed over 2° squares, where it is a rough but fair index. It depends on where AIS receivers and satellites pick ships up, so treat it as a guide.</p>
+<details><summary>Sources and licences</summary>
+<ul>
+<li>CLIWOC: Garcia-Herrera, R., Können, G. P., Wheeler, D. A., Prieto, M. R., Jones, P. D. and Koek, F. B. (2005) CLIWOC: a climatological database for the world's oceans 1750 to 1854. Climatic Change 73, 1 to 12. Database version 2.1, released by the Universidad Complutense de Madrid and KNMI (Royal Netherlands Meteorological Institute), with the University of Sunderland, the University of East Anglia, the Instituto de Ciencias Humanas, Sociales y Ambientales (Argentina) and the National Maritime Museum. CLIWOC is openly published research data; I could not find a formal licence, so I credit it in full and reuse it as research data. Please check the original terms before reusing the logbook positions.</li>
+<li>GeoJSON of CLIWOC voyages: Francisco Correoso, cliwoc_vis (github.com/kikocorreoso/cliwoc_vis), derived from the CLIWOC21 GeoPackage at stvno.github.io/page/cliwoc.</li>
+<li>NCEP/NCAR Reanalysis 1 long-term monthly means, NOAA Physical Sciences Laboratory (Kalnay et al. 1996). Public domain.</li>
+<li>World Bank, Global Shipping Traffic Density (IMF and World Bank, from AIS data 2015 to 2021; Cerdeiro et al. 2020). CC BY 4.0. Used only as sums over 2° squares.</li>
+<li>Wikipedia, 'Age of Sail' and 'Trade winds' (CC BY-SA 4.0), for background.</li>
+<li>Natural Earth land and countries (public domain). Base map tiles © Esri.</li>
+<li>This study: text, figures and derived data CC BY 4.0; code MIT.</li>
+</ul></details>
+
+<div class="cta"><a class="p" href="https://doi.org/10.5281/zenodo.23857610">Read the paper</a><a href="https://github.com/Tristan-Hotham/ships-before-steam">Data and code</a><a href="https://blog.tristanhotham.com/2026/10/31/ships-before-steam/">Blog post</a><a href="https://blog.tristanhotham.com/">Blog home</a></div>
+
+<footer>
+<p>Dr Tristan Hotham, Independent researcher. ORCID <a href="https://orcid.org/0000-0003-4931-9349">0000-0003-4931-9349</a>.</p>
+<p>Cite as: Hotham, T. (2026) Ships before steam: the trade-wind highways of the age of sail in British, Dutch, Spanish and French logbooks, 1750 to 1850. Zenodo. <a href="https://doi.org/10.5281/zenodo.23857610">10.5281/zenodo.23857610</a></p>
+<p>Data: CLIWOC v2.1 (Garcia-Herrera et al. 2005), GeoJSON by Francisco Correoso. Licence of this study: text, figures and data CC BY 4.0, code MIT.</p>
+<p>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</p>
+</footer>
+</div>
+<div class="tip" id="tip"></div>
+<button class="btn theme" id="theme" aria-label="Toggle dark mode">◐</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const R = /*RESULTS*/;
+const SITE = /*SITE*/;
+const fmt = n => n == null || n === "" ? "n/a" : Math.round(n).toLocaleString("en-GB");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const tip = document.getElementById("tip");
+function showTip(h, x, y) { tip.innerHTML = h; tip.style.display = "block"; const w = tip.offsetWidth; x = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, x)); tip.style.left = x + scrollX + "px"; tip.style.top = y + scrollY + "px"; }
+function hideTip() { tip.style.display = "none"; }
+document.addEventListener("click", hideTip);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const lbl = (svg, x, y, s, cls = "lab", anchor = "start") => { const t = el("text", { x, y, class: cls, "text-anchor": anchor }, svg); t.textContent = s; return t; };
+const redraws = [];
+function resp(box, render) { let last = 0; const go = force => { const w = Math.max(280, Math.round(box.clientWidth)); if (!force && Math.abs(w - last) < 4) return; last = w; box.innerHTML = ""; render(w, w < 560); }; new ResizeObserver(() => go()).observe(box); go(); redraws.push(() => go(true)); }
+const isDark = () => { const r = document.documentElement; return r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const small = () => innerWidth < 900;
+const NAT = SITE.nations.map(n => ({ k: n[0], s: n[1], l: n[2], c: n[3] }));
+const natCol = i => isDark() ? ["#F06A62", "#FF9A3D", "#E4BC3A", "#7FA8EE", "#6CC3B0"][i] : NAT[i].c;
+const GRP = SITE.groups;
+const DEC = SITE.decades;
+const decLabel = i => i < 0 ? "All years" : DEC[i] === "pre" ? "Before 1750" : DEC[i] + "s";
+const lonw = v => `${Math.abs(Math.round(v))}° ${v < 0 ? "W" : "E"}`, lats = v => `${Math.abs(Math.round(v))}° ${v < 0 ? "S" : "N"}`;
+const dstr = s => { const [y, m, d] = s.split("-"); return `${+d} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][+m - 1]} ${y}`; };
+
+/* hero mark: a compass rose */
+(function () {
+  const g = document.getElementById("heroMark");
+  el("circle", { cx: 60, cy: 60, r: 50, fill: "none", stroke: "currentColor", "stroke-width": 2 }, g);
+  el("circle", { cx: 60, cy: 60, r: 42, fill: "none", stroke: "currentColor", "stroke-width": .8, "stroke-dasharray": "2 3" }, g);
+  const cols = [NAT[0].c, NAT[1].c, NAT[2].c, NAT[3].c];
+  [0, 90, 180, 270].forEach((a, i) => { const r = a * Math.PI / 180; const x = 60 + 48 * Math.sin(r), y = 60 - 48 * Math.cos(r); const xl = 60 + 9 * Math.sin(r - Math.PI / 2), yl = 60 - 9 * Math.cos(r - Math.PI / 2); const xr = 60 + 9 * Math.sin(r + Math.PI / 2), yr = 60 - 9 * Math.cos(r + Math.PI / 2);
+    el("path", { d: `M${x} ${y} L${xl} ${yl} L60 60 Z`, fill: cols[i] }, g); el("path", { d: `M${x} ${y} L${xr} ${yr} L60 60 Z`, fill: cols[i], opacity: .55 }, g); });
+  [45, 135, 225, 315].forEach(a => { const r = a * Math.PI / 180; el("path", { d: `M${60 + 30 * Math.sin(r)} ${60 - 30 * Math.cos(r)} L${60 + 6 * Math.sin(r - 1.2)} ${60 - 6 * Math.cos(r - 1.2)} L60 60 L${60 + 6 * Math.sin(r + 1.2)} ${60 - 6 * Math.cos(r + 1.2)} Z`, fill: "currentColor", opacity: .7 }, g); });
+  el("circle", { cx: 60, cy: 60, r: 3.5, fill: "currentColor" }, g);
+})();
+
+/* ---------- map ---------- */
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const ESRI_ATT = 'Tiles &copy; Esri, HERE, Garmin, GEBCO, NOAA NGDC, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS user community';
+const LYDEF = { base: "plain", hills: false, hillK: 45, labels: false, labelK: 70, voy: true, alpha: 28, arrows: true, season: "all", belts: true, ports: false, today: false, todayK: 70 };
+const LY = { ...LYDEF };
+try { Object.assign(LY, JSON.parse(localStorage.getItem("sbs_layers") || "{}")); } catch (e) {}
+const saveLY = () => { try { localStorage.setItem("sbs_layers", JSON.stringify(LY)); } catch (e) {} };
+const map = L.map("map", { minZoom: 1, maxZoom: 10, worldCopyJump: false, maxBounds: [[-82, -260], [86, 260]], zoomSnap: .5, preferCanvas: true }).setView([8, 10], small() ? 1 : 2);
+["hills:250", "today:300", "voy:400", "hl:450", "labels:500", "arrows:560", "names:620"].forEach(s => { const [n, z] = s.split(":"); map.createPane(n); map.getPane(n).style.zIndex = z; });
+["hills", "today", "labels", "names"].forEach(n => map.getPane(n).style.pointerEvents = "none");
+const vCanvas = L.canvas({ pane: "voy", padding: .4, tolerance: 5 });
+const hCanvas = vCanvas;      // one canvas, so clicks reach every line; highlights are drawn last
+let base = null, hills = null, labels = null;
+const today = L.imageOverlay("data/today_2deg.png", [[-85.0511, -180], [85.0511, 180]], { pane: "today", opacity: .7, interactive: false });
+function setTiles() {
+  [base, labels, hills].forEach(l => { if (l) map.removeLayer(l); });
+  const t = isDark() ? "Dark" : "Light";
+  const url = LY.base === "ocean" ? ESRI + "Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}" : LY.base === "satellite" ? ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}" : `${ESRI}Canvas/World_${t}_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+  base = L.tileLayer(url, { maxZoom: 16, maxNativeZoom: LY.base === "ocean" ? 10 : 16, attribution: ESRI_ATT }).addTo(map);
+  hills = L.tileLayer(ESRI + "Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, maxNativeZoom: 16, pane: "hills" });
+  labels = L.tileLayer(`${ESRI}Canvas/World_${t}_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, pane: "labels" });
+  applyLayers();
+}
+const voyLayer = L.layerGroup(), hlLayer = L.layerGroup(), arrowLayer = L.layerGroup(), beltLayer = L.layerGroup(), portLayer = L.layerGroup();
+function applyLayers() {
+  if (!base) return;
+  if (LY.hills) { hills.addTo(map); hills.setOpacity(Math.min(1, .15 + LY.hillK / 120)); } else map.removeLayer(hills);
+  if (LY.labels) { labels.addTo(map); labels.setOpacity(LY.labelK / 100); } else map.removeLayer(labels);
+  if (LY.today) { today.addTo(map); today.setOpacity(LY.todayK / 100); } else map.removeLayer(today);
+  [[LY.voy, voyLayer], [LY.arrows, arrowLayer], [LY.belts, beltLayer], [LY.ports, portLayer]].forEach(([on, l]) => on ? l.addTo(map) : map.removeLayer(l));
+  hlLayer.addTo(map);
+  drawArrows(); restyle(); legend();
+}
+(function layerControl() {
+  const Ctl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    d.innerHTML = `<button class="lyrBtn" aria-expanded="false">Map layers</button>
+<div class="lyrPanel" hidden>
+ <div class="row"><label style="font-weight:600">Base map</label><div class="sub"><select data-k="base" aria-label="Base map"><option value="plain">Plain grey</option><option value="ocean">Ocean floor</option><option value="satellite">Satellite</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="hills"> Hills and mountains</label><div class="sub"><span>strength</span><input type="range" data-k="hillK" min="10" max="100" step="5" aria-label="Hill shading strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="labels"> Place names and borders</label><div class="sub"><span>strength</span><input type="range" data-k="labelK" min="20" max="100" step="5" aria-label="Place name strength"></div></div>
+ <div class="hd">The logbooks</div>
+ <div class="row"><label><input type="checkbox" data-k="voy"> Voyage lines</label><div class="sub"><span>strength</span><input type="range" data-k="alpha" min="10" max="100" step="5" aria-label="Line strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="arrows"> Logbook winds</label><div class="sub"><span>season</span><select data-k="season" aria-label="Season"><option value="all">All year</option><option value="djf">December to February</option><option value="jja">June to August</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="belts"> Oceans and wind belts</label></div>
+ <div class="row"><label><input type="checkbox" data-k="ports"> Ports used for routes</label></div>
+ <div class="hd">Today</div>
+ <div class="row"><label><input type="checkbox" data-k="today"> Shipping today (AIS, 2° squares)</label><div class="sub"><span>strength</span><input type="range" data-k="todayK" min="20" max="100" step="5" aria-label="Today's shipping strength"></div></div>
+ <button class="reset">Reset layers</button>
+</div>`;
+    return d; } });
+  map.addControl(new Ctl());
+  const box = map.getContainer(), btn = box.querySelector(".lyrBtn"), pan = box.querySelector(".lyrPanel");
+  btn.onclick = () => { const o = pan.hidden; pan.hidden = !o; btn.setAttribute("aria-expanded", o); };
+  const sync = () => pan.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (i.type === "checkbox") i.checked = LY[k]; else i.value = LY[k]; });
+  pan.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "range" ? "input" : "change", () => {
+    const k = i.dataset.k; LY[k] = i.type === "checkbox" ? i.checked : (k === "base" || k === "season" ? i.value : +i.value);
+    if (k === "hillK") LY.hills = true; if (k === "labelK") LY.labels = true; if (k === "alpha") LY.voy = true; if (k === "season") LY.arrows = true; if (k === "todayK") LY.today = true;
+    sync(); saveLY(); if (k === "base") setTiles(); else applyLayers();
+  }));
+  pan.querySelector(".reset").onclick = () => { Object.assign(LY, LYDEF); saveLY(); sync(); setTiles(); };
+  window.syncLayers = sync;
+  sync();
+})();
+const Note = L.Control.extend({ options: { position: "topleft" }, onAdd() { const d = L.DomUtil.create("div", "mapnote"); d.id = "mapnote"; L.DomEvent.disableClickPropagation(d); return d; } });
+map.addControl(new Note());
+L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
+
+/* ---------- static labels: oceans and wind belts, all placed on open sea ---------- */
+const SEAS = [["Atlantic Ocean", 32, -45], ["Atlantic Ocean", -32, -22], ["Indian Ocean", -12, 75], ["Pacific Ocean", 10, -140], ["Pacific Ocean", 5, 160], ["Southern Ocean", -60, 40]];
+const BELTS = [["North-east trades", "easterly, steady", 17, -48], ["South-east trades", "easterly, steady", -14, -20], ["Doldrums", "calms and squalls", 3.5, -30],
+  ["Westerlies", "the road home", 45, -30], ["Roaring forties", "westerly gales", -44, 70], ["Horse latitudes", "light, variable", 31, -55], ["South-east trades", "", -20, 85], ["Monsoons", "north-east in winter, south-west in summer", 12, 66]];
+SEAS.forEach(([n, la, lo]) => L.marker([la, lo], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "seaL", html: esc(n), iconSize: [180, 16], iconAnchor: [90, 8] }) }).addTo(beltLayer));
+BELTS.forEach(([n, s, la, lo]) => L.marker([la, lo], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "beltL", html: esc(n) + (s ? `<small>${esc(s)}</small>` : ""), iconSize: [170, 28], iconAnchor: [85, 14] }) }).addTo(beltLayer));
+Object.entries(SITE.ports).forEach(([k, [nm, kind, g]]) => { if (k === "sunda") return; const ll = kind === "box" ? [(g[1] + g[3]) / 2, (g[0] + g[2]) / 2] : [g[1], g[0]];
+  L.marker(ll, { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "portL", html: `<i></i>${esc(nm.split(" (")[0])}`, iconSize: null, iconAnchor: [4, 5] }) }).addTo(portLayer); });
+
+/* ---------- state ---------- */
+const S = { dec: -1, nats: new Set(NAT.map((_, i) => i)), grp: "all", track: null, pass: null, focus: null, port: null };
+let V = null, PL = [], arrowsData = null;
+const side = document.getElementById("side");
+function passOk(p) { const t = V.t[p[0]]; return S.nats.has(t[1]) && (S.grp === "all" || GRP[t[2]][0] === S.grp) && (S.dec < 0 || p[4] === S.dec); }
+function decode(d) { const out = []; let x = 0, y = 0; for (let i = 0; i < d.length; i += 2) { x += d[i]; y += d[i + 1]; out.push([y / 10, x / 10]); } return out; }
+function build() {
+  voyLayer.clearLayers(); PL = [];
+  const order = V.p.map((_, i) => i).sort((a, b) => ((a * 2654435761) % 4093) - ((b * 2654435761) % 4093));      // fixed shuffle so no nation hides the others
+  order.forEach(i => { const p = V.p[i]; const ll = p._ll || (p._ll = decode(p[7]));
+    const pl = L.polyline(ll, { renderer: vCanvas, weight: 1, opacity: .4, color: natCol(V.t[p[0]][1]), interactive: true });
+    pl._i = i; pl.on("click", e => { L.DomEvent.stopPropagation(e); pickPassage(i); }); PL.push(pl); });
+  restyle();
+}
+function restyle() {
+  if (!V) return;
+  const a = LY.alpha / 100, dim = S.track != null || S.port != null;
+  voyLayer.clearLayers();
+  PL.forEach(pl => { const p = V.p[pl._i]; if (!passOk(p)) return; const i = V.t[p[0]][1];
+    pl.setStyle({ color: natCol(i), opacity: dim ? a * .35 : a, weight: map.getZoom() >= 4 ? 1.4 : 1 }); voyLayer.addLayer(pl); });
+  hlLayer.clearLayers();
+  const hl = [];
+  if (S.track != null) V.p.forEach((p, i) => { if (p[0] === S.track) hl.push(i); });
+  if (S.port != null) V.p.forEach((p, i) => { if (passOk(p) && (p[5] === S.port || p[6] === S.port)) hl.push(i); });
+  hl.forEach(i => { const p = V.p[i]; const ll = p._ll || (p._ll = decode(p[7]));
+    L.polyline(ll, { renderer: hCanvas, weight: 5, opacity: .9, color: isDark() ? "#141922" : "#fff" }).addTo(hlLayer);
+    const pl = L.polyline(ll, { renderer: hCanvas, weight: i === S.pass ? 3.2 : 2.2, opacity: 1, color: natCol(V.t[p[0]][1]) }); pl.on("click", e => { L.DomEvent.stopPropagation(e); pickPassage(i); }); pl.addTo(hlLayer); });
+  summary();
+}
+function counts() { const c = { n: 0, ships: new Set(), days: 0, by: NAT.map(() => 0) }; V.p.forEach(p => { if (!passOk(p)) return; c.n++; c.ships.add(p[0]); c.days += p[7].length / 2; c.by[V.t[p[0]][1]]++; }); return c; }
+function summary() {
+  if (!V || S.track != null || S.port != null) return;
+  const c = counts();
+  const filt = [S.dec < 0 ? "All years" : decLabel(S.dec), S.grp === "all" ? null : GRP.find(g => g[0] === S.grp)[1], S.nats.size < NAT.length ? [...S.nats].map(i => NAT[i].s).join(", ") : null].filter(Boolean).join(" · ");
+  side.innerHTML = `<h4>Showing</h4><div class="big">${fmt(c.n)} passages</div><p class="sub">${esc(filt)}: ${fmt(c.ships.size)} logbook records, ${fmt(c.days)} daily positions.</p>
+<table>${NAT.map((n, i) => `<tr><td><span class="sw" style="background:${natCol(i)}"></span>${esc(n.l)}</td><td class="num">${fmt(c.by[i])}</td></tr>`).join("")}</table>
+<h4>Try</h4><p>Click any line to see the ship and its logbook. Press <b>Play</b> to watch the decades go by. Open <b>Map layers</b> for the winds by season, today's shipping and place names.</p>
+<p class="sub">The record is uneven: Spanish logbooks are mostly from 1760 to 1799, Dutch ones mostly from after 1820, and British ones stop in the 1820s. See section 07.</p>`;
+}
+function pickPassage(i, fly) {
+  const p = V.p[i], t = V.t[p[0]]; S.track = p[0]; S.pass = i; S.port = null; restyle();
+  const mine = V.p.map((q, j) => [q, j]).filter(([q]) => q[0] === p[0]);
+  const days = mine.reduce((s, [q]) => s + q[7].length / 2, 0);
+  side.innerHTML = `<button class="back" id="bk">Back to all voyages</button><h4>${esc(NAT[t[1]].l.split(" (")[0])} · ${esc(GRP[t[2]][1])}</h4><div class="big" style="color:${natCol(t[1])}">${esc(t[0])}</div>
+<p class="sub">${esc([t[4], t[3]].filter(Boolean).join(", ") || "Ship type and company not recorded")}</p>
+<h4>This passage</h4><table><tr><td>From</td><td>${dstr(p[1])}${p[5] ? `<br><small>${esc(p[5])}</small>` : ""}</td></tr><tr><td>To</td><td>${p[6] ? `<small>${esc(p[6])}</small><br>` : ""}${p[2]} days later</td></tr>
+<tr><td>Positions</td><td class="num">${fmt(p[7].length / 2)}</td></tr><tr><td>Distance</td><td class="num">${fmt(p[3])} km<br><small>noon to noon, straight lines</small></td></tr></table>
+<h4>The whole logbook record</h4><table><tr><td>Passages</td><td class="num">${mine.length}</td></tr><tr><td>Daily positions</td><td class="num">${fmt(days)}</td></tr>
+${t[7] || t[8] ? `<tr><td>Logged as</td><td>${esc(t[7] || "?")} to ${esc(t[8] || "?")}</td></tr>` : ""}<tr><td>Archive</td><td>${esc(t[5] || "Not recorded")}</td></tr><tr><td>CLIWOC ID</td><td><small>${esc(t[6])}</small></td></tr></table>
+${mine.length > 1 ? `<h4>Passages in this record</h4><ol>${mine.slice(0, 30).map(([q, j]) => `<li><span class="go" data-p="${j}">${dstr(q[1])}</span> <small>${q[2]} days</small></li>`).join("")}</ol>` : ""}`;
+  side.querySelector("#bk").onclick = clearSel;
+  side.querySelectorAll("[data-p]").forEach(a => a.onclick = () => pickPassage(+a.dataset.p, true));
+  if (fly) { const b = L.latLngBounds(mine.flatMap(([q]) => q._ll || (q._ll = decode(q[7])))); map.fitBounds(b, { padding: [20, 20], maxZoom: 5 }); }
+  if (small()) side.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function pickPort(name) {
+  S.port = name; S.track = null; S.pass = null; restyle();
+  const hit = V.p.filter(p => passOk(p) && (p[5] === name || p[6] === name));
+  const by = NAT.map(() => 0); hit.forEach(p => by[V.t[p[0]][1]]++);
+  side.innerHTML = `<button class="back" id="bk">Back to all voyages</button><h4>Port or anchorage</h4><div class="big">${esc(name)}</div><p class="sub">${fmt(hit.length)} passages in the current selection start or end here.</p>
+<table>${NAT.map((n, i) => by[i] ? `<tr><td><span class="sw" style="background:${natCol(i)}"></span>${esc(n.s)}</td><td class="num">${fmt(by[i])}</td></tr>` : "").join("")}</table>`;
+  side.querySelector("#bk").onclick = clearSel;
+  const pk = Object.values(SITE.ports).find(v => v[0] === name);
+  if (pk) { const g = pk[2]; map.setView(pk[1] === "box" ? [(g[1] + g[3]) / 2, (g[0] + g[2]) / 2] : [g[1], g[0]], 4); }
+}
+function clearSel() { S.track = null; S.pass = null; S.port = null; restyle(); }
+map.on("click", () => { if (S.track != null || S.port != null) clearSel(); });
+map.on("zoomend", () => { drawArrows(); restyle(); });
+
+/* ---------- wind arrows ---------- */
+function forceCol(f) { if (f == null) return isDark() ? "#cfd6de" : "#3b4a5a"; const t = Math.max(0, Math.min(1, (f - 3) / 7)); const A = isDark() ? [190, 215, 235] : [70, 120, 160], B = isDark() ? [255, 170, 120] : [120, 20, 30]; return `rgb(${A.map((a, i) => Math.round(a + (B[i] - a) * t)).join(",")})`; }
+function drawArrows() {
+  arrowLayer.clearLayers(); if (!arrowsData || !LY.arrows) return;
+  const z = map.getZoom(), cellPx = 5 * 256 * Math.pow(2, z) / 360, thin = cellPx < 24, maxL = Math.min(46, cellPx * (thin ? 1.6 : .9));
+  if (cellPx < 6) return;
+  arrowsData[LY.season].forEach(([lo, la, frm, st, n, f]) => {
+    if (thin && (Math.round((lo + 177.5) / 5) % 2 || Math.round((la + 87.5) / 5) % 2)) return;      // world view: every other square
+    const L_ = Math.max(4, maxL * st), r = (frm + 180) * Math.PI / 180, dx = Math.sin(r) * L_ / 2, dy = -Math.cos(r) * L_ / 2;
+    const h = Math.min(6, 2 + L_ * .18), a1 = r + Math.PI - .5, a2 = r + Math.PI + .5;
+    const hx1 = dx + Math.sin(a1) * h, hy1 = dy - Math.cos(a1) * h, hx2 = dx + Math.sin(a2) * h, hy2 = dy - Math.cos(a2) * h;
+    const c = forceCol(f), halo = isDark() ? "#141922" : "#fff";
+    const svg = `<svg width="2" height="2" viewBox="-1 -1 2 2"><g stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M${-dx} ${-dy}L${dx} ${dy}M${hx1} ${hy1}L${dx} ${dy}L${hx2} ${hy2}" stroke="${halo}" stroke-width="3.6" opacity=".85"/><path d="M${-dx} ${-dy}L${dx} ${dy}M${hx1} ${hy1}L${dx} ${dy}L${hx2} ${hy2}" stroke="${c}" stroke-width="1.7"/></g></svg>`;
+    const m = L.marker([la, lo], { pane: "arrows", keyboard: false, icon: L.divIcon({ className: "arrow", html: svg, iconSize: [2, 2], iconAnchor: [1, 1] }) });
+    const comp = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"][Math.round(frm / 22.5) % 16];
+    m.bindTooltip(`<b>Logbook wind, ${lats(la)}, ${lonw(lo)}</b><br>From the ${comp} (${Math.round(frm)}°), steadiness ${st.toFixed(2)}<br>${f != null ? `Mean force ${f.toFixed(1)} m/s<br>` : ""}${fmt(n)} daily entries`, { direction: "top" });
+    m.addTo(arrowLayer); });
+}
+
+/* ---------- legend ---------- */
+function legend() {
+  const lg = document.getElementById("legend");
+  lg.innerHTML = NAT.map((n, i) => `<span><i style="background:${natCol(i)}"></i>${esc(n.l)}</span>`).join("") +
+    (LY.arrows ? `<span><i class="ar"><svg width="26" height="10" viewBox="0 0 26 10"><path d="M2 5H23M18 1.5L23 5L18 8.5" stroke="${forceCol(4)}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></i>light wind</span><span><i class="ar"><svg width="26" height="10" viewBox="0 0 26 10"><path d="M2 5H23M18 1.5L23 5L18 8.5" stroke="${forceCol(10)}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></i>strong wind (arrow length: steadiness)</span>` : "") +
+    (LY.today ? `<span><i style="background:linear-gradient(90deg,#cddce2,#14224a)"></i>shipping today, light to heavy</span>` : "");
+}
+
+/* ---------- controls ---------- */
+const decIn = document.getElementById("dec"), decOut = document.getElementById("decOut");
+decIn.max = DEC.length;
+decIn.oninput = () => { S.dec = +decIn.value - 1; decOut.textContent = decLabel(S.dec); clearSelSoft(); restyle(); };
+function clearSelSoft() { S.track = null; S.pass = null; S.port = null; }
+let timer = null; const play = document.getElementById("play");
+play.onclick = () => { if (timer) { clearInterval(timer); timer = null; play.setAttribute("aria-pressed", "false"); play.textContent = "Play"; return; }
+  play.setAttribute("aria-pressed", "true"); play.textContent = "Pause"; let v = Math.max(2, +decIn.value);
+  const step = () => { decIn.value = v; decIn.oninput(); v++; if (v > DEC.length) { clearInterval(timer); timer = null; play.setAttribute("aria-pressed", "false"); play.textContent = "Play"; } };
+  step(); timer = setInterval(step, 1400); };
+const natRow = document.getElementById("natRow");
+NAT.forEach((n, i) => { const b = document.createElement("button"); b.className = "btn nat"; b.setAttribute("aria-pressed", "true"); b.innerHTML = `<span class="dot" style="background:${n.c}"></span>${esc(n.s)}`;
+  b.onclick = () => { if (S.nats.has(i)) S.nats.delete(i); else S.nats.add(i); if (!S.nats.size) S.nats.add(i); syncNat(); clearSelSoft(); restyle(); }; natRow.appendChild(b); });
+function syncNat() { natRow.querySelectorAll(".btn").forEach((b, i) => b.setAttribute("aria-pressed", S.nats.has(i))); }
+const grpRow = document.getElementById("grpRow");
+[["all", "All"], ...GRP].forEach(([k, l]) => { const b = document.createElement("button"); b.className = "btn"; b.dataset.g = k; b.textContent = l; b.setAttribute("aria-pressed", k === "all");
+  b.onclick = () => { S.grp = k; syncGrp(); clearSelSoft(); restyle(); }; grpRow.appendChild(b); });
+function syncGrp() { grpRow.querySelectorAll(".btn").forEach(b => b.setAttribute("aria-pressed", b.dataset.g === S.grp)); }
+function setNats(list) { S.nats = new Set(list); syncNat(); }
+function resetFilters() { S.dec = -1; decIn.value = 0; decOut.textContent = decLabel(-1); setNats(NAT.map((_, i) => i)); S.grp = "all"; syncGrp(); clearSelSoft(); }
+const FOCUS = {
+  all: ["Everything", () => { resetFilters(); map.setView([8, 10], small() ? 1 : 2); }],
+  volta: ["The volta do mar", () => { resetFilters(); map.setView([18, -25], small() ? 2 : 3); note("Outbound ships hug Africa; homebound ones swing west towards the Azores before turning for Europe."); }],
+  brouwer: ["The Brouwer route", () => { resetFilters(); setNats([1]); map.setView([-22, 62], small() ? 2 : 3); note("Dutch ships run east from the Cape near 40° S, then turn north for the Sunda Strait and Batavia."); }],
+  correos: ["Spanish mail packets", () => { resetFilters(); setNats([2]); S.grp = "correo"; syncGrp(); map.setView([12, -40], small() ? 2 : 3); note("The correos marítimos from La Coruña to Puerto Rico, Havana and the River Plate."); }],
+  eic: ["East India companies", () => { resetFilters(); S.grp = "eic"; syncGrp(); map.setView([-5, 30], small() ? 1 : 2); note("English, Dutch, Swedish and Danish East India company ships."); }],
+  windsDJF: ["Winds, Dec to Feb", () => { LY.arrows = true; LY.season = "djf"; saveLY(); window.syncLayers(); applyLayers(); map.setView([5, 60], small() ? 2 : 3); note("December to February: the north-east monsoon over the Arabian Sea and Bay of Bengal."); }],
+  windsJJA: ["Winds, Jun to Aug", () => { LY.arrows = true; LY.season = "jja"; saveLY(); window.syncLayers(); applyLayers(); map.setView([5, 60], small() ? 2 : 3); note("June to August: the south-west monsoon, the same seas with the wind turned round."); }],
+  endeavour: ["Cook's Endeavour", () => { resetFilters(); pickPassage(V.p.findIndex(p => p[0] === SITE.famous.endeavour), true); }],
+  resolution: ["Cook's Resolution", () => { resetFilters(); pickPassage(V.p.findIndex(p => p[0] === SITE.famous.resolution), true); }],
+  boussole: ["La Pérouse's Boussole", () => { resetFilters(); pickPassage(V.p.findIndex(p => p[0] === SITE.famous.boussole), true); }],
+};
+function note(s) { const n = document.getElementById("mapnote"); n.textContent = s || ""; clearTimeout(note._t); if (s) note._t = setTimeout(() => n.textContent = "", 9000); }
+const focusRow = document.getElementById("focusRow");
+Object.entries(FOCUS).forEach(([k, [l, f]]) => { const b = document.createElement("button"); b.className = "btn"; b.textContent = l; b.onclick = () => { if (!V) return; f(); restyle(); }; focusRow.appendChild(b); });
+document.querySelectorAll("[data-focus]").forEach(a => a.addEventListener("click", e => { const f = FOCUS[a.dataset.focus]; if (f && V) setTimeout(() => { f[1](); restyle(); }, 350); }));
+
+/* search: ships and ports */
+const q = document.getElementById("q"), sug = document.getElementById("sug");
+let SEARCH = [];
+function buildSearch() {
+  const ships = {}; V.t.forEach((t, i) => { const k = t[0]; (ships[k] = ships[k] || []).push(i); });
+  SEARCH = Object.entries(ships).map(([nm, ids]) => ({ kind: "ship", name: nm, ids })).concat(Object.values(SITE.ports).filter(v => v[0] !== "Sunda Strait").map(v => ({ kind: "port", name: v[0] })));
+}
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+q.addEventListener("input", () => {
+  const s = norm(q.value.trim()); if (s.length < 2 || !V) { sug.style.display = "none"; return; }
+  const hits = SEARCH.filter(h => norm(h.name).includes(s)).sort((a, b) => (norm(a.name).startsWith(s) ? 0 : 1) - (norm(b.name).startsWith(s) ? 0 : 1)).slice(0, 12);
+  sug.innerHTML = hits.map((h, i) => { if (h.kind === "port") return `<li data-i="${i}">${esc(h.name)} <span>port</span></li>`;
+    const t = V.t[h.ids[0]]; const yrs = h.ids.map(id => (V.p.find(p => p[0] === id) || [0, "?"])[1].slice(0, 4)).filter(y => y !== "?").sort();
+    return `<li data-i="${i}">${esc(h.name)} <span>${esc(NAT[t[1]].s)}${yrs.length ? ", " + yrs[0] + (yrs.length > 1 && yrs[yrs.length - 1] !== yrs[0] ? " to " + yrs[yrs.length - 1] : "") : ""}${h.ids.length > 1 ? ", " + h.ids.length + " records" : ""}</span></li>`; }).join("");
+  sug.style.display = hits.length ? "block" : "none";
+  sug.querySelectorAll("li").forEach(li => li.onclick = () => { const h = hits[+li.dataset.i]; sug.style.display = "none"; q.value = h.name; resetFilters();
+    if (h.kind === "port") pickPort(h.name); else { const j = V.p.findIndex(p => p[0] === h.ids[0]); if (j >= 0) pickPassage(j, true); } });
+});
+q.addEventListener("keydown", e => { if (e.key === "Enter") { const li = sug.querySelector("li"); if (li) li.click(); } if (e.key === "Escape") sug.style.display = "none"; });
+document.addEventListener("click", e => { if (!e.target.closest(".searchbox")) sug.style.display = "none"; });
+
+/* ---------- load ---------- */
+side.innerHTML = `<h4>Loading</h4><p>Loading {{n_passages|int}} passages...</p>`;
+Promise.all([fetch("data/voyages.json").then(r => r.json()), fetch("data/wind_arrows.json").then(r => r.json())]).then(([v, a]) => {
+  V = v; arrowsData = a; buildSearch(); build(); setTiles(); window.READY = true;
+}).catch(e => { side.innerHTML = `<p>Could not load the voyage data (${esc(e.message)}).</p>`; });
+setTiles();
+
+/* ---------- charts ---------- */
+const PAL = { out: "#C2272D", home: "#24557F" };
+function histChart(box, series, lo, step, xfmt, w, sm, xlab) {
+  const H = sm ? 220 : 250, m = { l: 40, r: 10, t: 14, b: 40 };
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, box);
+  const nb = series[0].h.length, max = Math.max(...series.flatMap(s => s.h));
+  const st0 = max > 300 ? 100 : max > 120 ? 50 : max > 50 ? 20 : 10, top = Math.ceil(max / st0) * st0;
+  const bw = (w - m.l - m.r) / nb, y = v => H - m.b - (H - m.t - m.b) * v / top;
+  Array.from({ length: top / st0 + 1 }, (_, i) => i * st0).forEach(v => { el("line", { x1: m.l, x2: w - m.r, y1: y(v), y2: y(v), stroke: css("--rule") }, svg); lbl(svg, m.l - 6, y(v) + 4, v, "lab s m", "end"); });
+  series.forEach((s, si) => s.h.forEach((v, i) => { if (!v) return; const x = m.l + i * bw + (series.length > 1 ? si * bw / 2 : 0) + 1, ww = bw / series.length - 2;
+    const r = el("rect", { x, y: y(v), width: Math.max(1, ww), height: H - m.b - y(v), fill: s.c, rx: 1 }, svg);
+    r.addEventListener("mousemove", e => showTip(`<b>${esc(s.name)}</b><br>${xfmt(lo + i * step)} to ${xfmt(lo + (i + 1) * step)}: ${v} crossings`, e.pageX - scrollX, e.pageY - scrollY));
+    r.addEventListener("mouseleave", hideTip); }));
+  const every = Math.max(1, Math.ceil(nb / (sm ? 5 : 10)));
+  for (let i = 0; i <= nb; i++) { const x = m.l + i * bw; el("line", { x1: x, x2: x, y1: H - m.b, y2: H - m.b + 4, stroke: css("--muted") }, svg); if (i % every === 0) lbl(svg, x, H - m.b + 16, xfmt(lo + i * step), "lab s m", "middle"); }
+  lbl(svg, m.l, H - 6, xlab, "lab s m");
+  let lx = w - m.r; series.slice().reverse().forEach(s => { const t = lbl(svg, lx, m.t + 2, s.name, "lab s", "end"); const bb = t.getComputedTextLength(); el("rect", { x: lx - bb - 16, y: m.t - 7, width: 10, height: 10, fill: s.c }, svg); lx -= bb + 30; });
+}
+resp(document.getElementById("voltaChart"), (w, sm) => { const H = R.hist;
+  histChart(document.getElementById("voltaChart"), [{ name: `Outbound (${H.lat30_out.total})`, h: H.lat30_out.n, c: PAL.out }, { name: `Homebound (${H.lat30_home.total})`, h: H.lat30_home.n, c: PAL.home }], H.lat30_out.lo, H.lat30_out.step, v => v === 0 ? "0°" : lonw(v), w, sm, "Longitude where the track crossed 30° N"); });
+resp(document.getElementById("brouwerChart"), (w, sm) => { const H = R.hist;
+  histChart(document.getElementById("brouwerChart"), [{ name: `Dutch (${H.lon75_dutch.total})`, h: H.lon75_dutch.n, c: NAT[1].c }, { name: `British (${H.lon75_british.total})`, h: H.lon75_british.n, c: NAT[0].c }], H.lon75_dutch.lo, H.lon75_dutch.step, v => v === 0 ? "0°" : lats(v), w, sm, "Latitude where eastbound tracks crossed 75° E"); });
+
+const DROUTES = [["nl_batavia", 1], ["batavia_nl", 1], ["nl_cape", 1], ["cape_batavia", 1], ["nl_suriname", 1], ["channel_india", 0], ["channel_caribbean", 0], ["spain_puertorico", 2], ["havana_spain", 2], ["spain_plate", 2], ["plate_spain", 2]];
+resp(document.getElementById("durChart"), (w, sm) => {
+  const rows = DROUTES.filter(([k]) => R.dur[k] && R.dur[k].n >= 5);
+  sm = true; const rh = 30, m = { l: 10, r: 16, t: 10, b: 34 }, H = m.t + m.b + rows.length * rh * 1.6;
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, document.getElementById("durChart"));
+  const max = 260, x = v => m.l + (w - m.l - m.r) * Math.min(v, max) / max;
+  [0, 50, 100, 150, 200, 250].forEach(v => { el("line", { x1: x(v), x2: x(v), y1: m.t, y2: H - m.b, stroke: css("--rule") }, svg); lbl(svg, x(v), H - m.b + 16, v, "lab s m", "middle"); });
+  lbl(svg, w - m.r, H - 6, "days", "lab s m", "end");
+  rows.forEach(([k, ni], i) => { const d = R.dur[k], yy = m.t + (i + .5) * rh * (sm ? 1.6 : 1) + (sm ? 8 : 0), c = NAT[ni].c;
+    const name = `${d.label} (${d.n})`;
+    if (sm) lbl(svg, m.l, yy - 12, name, "lab s"); else lbl(svg, m.l - 10, yy + 4, name, "lab s", "end");
+    el("line", { x1: x(d.min), x2: x(d.max), y1: yy, y2: yy, stroke: c, "stroke-width": 1.2, opacity: .7 }, svg);
+    if (d.max > max) lbl(svg, x(max) - 2, yy - 5, `to ${Math.round(d.max)}`, "lab s m", "end");
+    el("rect", { x: x(d.q1), y: yy - 6, width: Math.max(2, x(d.q3) - x(d.q1)), height: 12, fill: c, opacity: .35, rx: 2 }, svg);
+    const dot = el("circle", { cx: x(d.median), cy: yy, r: 5.5, fill: c, stroke: css("--card"), "stroke-width": 1.5 }, svg);
+    lbl(svg, x(d.median) + 9, yy + 4, Math.round(d.median), "lab s b");
+    dot.addEventListener("mousemove", e => showTip(`<b>${esc(d.label)}</b><br>${d.n} voyages, median ${Math.round(d.median)} days<br>middle half ${Math.round(d.q1)} to ${Math.round(d.q3)}; fastest ${Math.round(d.min)}<br>fastest ship: ${esc(d.fastest.ship)} (${d.fastest.year})`, e.pageX - scrollX, e.pageY - scrollY));
+    dot.addEventListener("mouseleave", hideTip); });
+});
+
+resp(document.getElementById("beltChart"), (w, sm) => {
+  const B = R.wind.belts.atlantic.slice().sort((a, b) => a.lat0 - b.lat0);
+  const H = sm ? 300 : 320, m = { l: 46, r: 16, t: 26, b: 40 };
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, document.getElementById("beltChart"));
+  const x = la => m.l + (w - m.l - m.r) * (la + 60) / 125, y = u => m.t + (H - m.t - m.b) * (1 - (u + 1) / 2);
+  [-1, -.5, 0, .5, 1].forEach(v => { el("line", { x1: m.l, x2: w - m.r, y1: y(v), y2: y(v), stroke: v === 0 ? css("--muted") : css("--rule") }, svg); lbl(svg, m.l - 6, y(v) + 4, v.toFixed(1), "lab s m", "end"); });
+  [-60, -40, -20, 0, 20, 40, 60].forEach(la => { lbl(svg, x(la), H - m.b + 16, la === 0 ? "0°" : lats(la), "lab s m", "middle"); });
+  lbl(svg, m.l + 4, y(1) - 8, "from the west", "lab s m"); lbl(svg, w - m.r - 4, y(-1) - 6, "from the east", "lab s m", "end");
+  const line = (key, c, dash, name) => { const pts = B.map(b => [x((b.lat0 + b.lat1) / 2), y(b[key])]);
+    el("path", { d: "M" + pts.map(p => p.join(" ")).join("L"), fill: "none", stroke: c, "stroke-width": 2.6, "stroke-dasharray": dash || "" }, svg);
+    pts.forEach((p, i) => { const c2 = el("circle", { cx: p[0], cy: p[1], r: dash ? 0 : 3.6, fill: c }, svg);
+      if (!dash) { c2.addEventListener("mousemove", e => showTip(`<b>${B[i].lat0 < 0 ? lats(B[i].lat1) + " to " + lats(B[i].lat0) : lats(B[i].lat0) + " to " + lats(B[i].lat1)}</b><br>${fmt(B[i].n)} logbook winds, ${Math.round(B[i].east_share * 100)}% from an easterly point<br>Logbook mean ${B[i].u.toFixed(2)}, modern ${B[i].ncep_unit_u.toFixed(2)}<br>Calm or variable: ${(B[i].calm_var * 100).toFixed(1)}%`, e.pageX - scrollX, e.pageY - scrollY)); c2.addEventListener("mouseleave", hideTip); } }); };
+  line("ncep_unit_u", css("--muted"), "5 4"); line("u", css("--cool"));
+  const lg = [[css("--cool"), "", "Logbooks"], [css("--muted"), "5 4", "Modern reanalysis"]]; let lx = w - m.r;
+  lg.reverse().forEach(([c, d, n]) => { const t = lbl(svg, lx, 12, n, "lab s", "end"); const bb = t.getComputedTextLength(); el("line", { x1: lx - bb - 30, x2: lx - bb - 6, y1: 8, y2: 8, stroke: c, "stroke-width": 2.6, "stroke-dasharray": d }, svg); lx -= bb + 44; });
+  [["NE trades", 17], ["SE trades", -15], ["Westerlies", 45], ["Westerlies", -45]].forEach(([n, la]) => lbl(svg, x(la), la > 30 || la < -30 ? y(.62) : y(-.97) + 0, n, "lab s b", "middle"));
+});
+
+function routeTable() {
+  const box = document.getElementById("routeTable");
+  const rows = NAT.slice(0, 4).map((n, i) => [n, R.routes_by_nation[n.k].slice(0, 4)]);
+  box.innerHTML = `<div class="tablewrap"><table class="t"><thead><tr><th>Nation</th><th>Route</th><th class="num">Legs</th></tr></thead><tbody>${rows.map(([n, rr]) => rr.map((r, j) => `<tr>${j === 0 ? `<td rowspan="${rr.length}"><span class="sw" style="background:${n.c}"></span>${esc(n.s)}</td>` : ""}<td><span class="go" data-port="${esc(r.b_label)}" data-port2="${esc(r.a_label)}">${esc(r.a_label.split(" (")[0])} and ${esc(r.b_label.split(" (")[0])}</span></td><td class="num">${r.n}</td></tr>`).join("")).join("")}</tbody></table></div>`;
+  box.querySelectorAll("[data-port]").forEach(a => a.onclick = () => { if (!V) return; document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); resetFilters(); const p = a.dataset.port.startsWith("Home waters") ? a.dataset.port2 : a.dataset.port; setTimeout(() => pickPort(p), 300); });
+}
+routeTable();
+
+resp(document.getElementById("covChart"), (w, sm) => {
+  const C = R.coverage, H = sm ? 260 : 300, m = { l: 52, r: 10, t: 30, b: 36 };
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, document.getElementById("covChart"));
+  const max = Math.ceil(Math.max(...C.map(c => c.total_obs)) / 10000) * 10000, bw = (w - m.l - m.r) / C.length, y = v => H - m.b - (H - m.t - m.b) * v / max;
+  for (let v = 0; v <= max; v += 10000) { el("line", { x1: m.l, x2: w - m.r, y1: y(v), y2: y(v), stroke: css("--rule") }, svg); lbl(svg, m.l - 6, y(v) + 4, v ? (v / 1000) + "k" : "0", "lab s m", "end"); }
+  C.forEach((c, i) => { let acc = 0; NAT.forEach((n, j) => { const v = c.obs[n.k]; if (!v) return; const r = el("rect", { x: m.l + i * bw + 3, y: y(acc + v), width: bw - 6, height: y(acc) - y(acc + v), fill: n.c }, svg); acc += v;
+      r.addEventListener("mousemove", e => showTip(`<b>${c.decade}s, ${esc(n.s)}</b><br>${fmt(v)} daily positions<br>${fmt(c.passages[n.k])} passages`, e.pageX - scrollX, e.pageY - scrollY)); r.addEventListener("mouseleave", hideTip); });
+    lbl(svg, m.l + (i + .5) * bw, H - m.b + 16, sm ? "'" + String(c.decade).slice(2) : c.decade + "s", "lab s m", "middle"); });
+  let lx = m.l; NAT.forEach(n => { el("rect", { x: lx, y: 6, width: 10, height: 10, fill: n.c }, svg); const t = lbl(svg, lx + 14, 15, n.s, "lab s"); lx += t.getComputedTextLength() + 28; });
+});
+(function covTable() {
+  const t = document.getElementById("covTable"), C = R.coverage;
+  t.innerHTML = `<thead><tr><th>Passages</th>${C.map(c => `<th class="num">${String(c.decade).slice(0, 4)}s</th>`).join("")}</tr></thead><tbody>${NAT.map(n => `<tr><td><span class="sw" style="background:${n.c}"></span>${esc(n.s)}</td>${C.map(c => `<td class="num">${fmt(c.passages[n.k])}</td>`).join("")}</tr>`).join("")}<tr><td><b>All</b></td>${C.map(c => `<td class="num"><b>${fmt(c.total_passages)}</b></td>`).join("")}</tr></tbody>`;
+})();
+
+resp(document.getElementById("modChart"), (w, sm) => {
+  const K = ["south_atlantic_mid", "south_indian", "st_helena", "north_pacific", "red_sea", "malacca"], Rg = R.modern.region;
+  sm = true; const rh = 46, m = { l: 10, r: 60, t: 26, b: 10 }, H = m.t + m.b + K.length * rh;
+  const svg = el("svg", { viewBox: `0 0 ${w} ${H}` }, document.getElementById("modChart"));
+  const max = Math.max(...K.flatMap(k => [Rg[k].sail_share, Rg[k].ais_share])), x = v => m.l + (w - m.l - m.r) * v / max;
+  [[PAL.out, "Logbooks, 1750 to 1850"], [css("--cool"), "Ships today"]].forEach(([c, n], i) => { el("rect", { x: m.l + i * 190, y: 6, width: 10, height: 10, fill: c }, svg); lbl(svg, m.l + i * 190 + 14, 15, n, "lab s"); });
+  K.forEach((k, i) => { const r = Rg[k], yy = m.t + i * rh + (sm ? 14 : 4);
+    if (sm) lbl(svg, m.l, yy - 2, r.label, "lab s"); else lbl(svg, m.l - 10, yy + 13, r.label, "lab s", "end");
+    [[r.sail_share, PAL.out], [r.ais_share, css("--cool")]].forEach(([v, c], j) => { el("rect", { x: m.l, y: yy + 2 + j * 11, width: Math.max(1, x(v) - m.l), height: 9, fill: c }, svg); lbl(svg, x(v) + 5, yy + 10 + j * 11, (v * 100).toFixed(v < .001 ? 2 : 1) + "%", "lab s m"); }); });
+});
+
+/* theme */
+document.getElementById("theme").onclick = () => { const r = document.documentElement; r.dataset.theme = isDark() ? "light" : "dark"; setTiles(); if (V) build(); legend(); redraws.forEach(f => f()); };
+</script>
+/*FULLSCREEN*/
+</body>
+</html>
